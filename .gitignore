@@ -1,0 +1,5 @@
+node_modules/
+dist/
+qa/
+mobile-audit/
+qa*.png

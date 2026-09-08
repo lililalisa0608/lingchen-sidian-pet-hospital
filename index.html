@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#172724" />
+    <title>凌晨四点的宠物医院</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="game" class="game-shell" data-fit="cover">
+      <section id="stage" class="stage" aria-live="polite"></section>
+
+      <header id="hud" class="hud hidden">
+        <div class="scene-marker">
+          <span id="scene-title">宠物医院</span>
+          <small id="scene-subtitle">04:46</small>
+        </div>
+        <nav class="hud-actions" aria-label="游戏菜单">
+          <button id="evidence-button" class="hud-button" type="button" aria-label="证物">
+            <i class="ph ph-briefcase"></i><span>证物</span><b id="evidence-count">0</b>
+          </button>
+          <button id="record-button" class="hud-button" type="button" aria-label="对话记录">
+            <i class="ph ph-notebook"></i><span>记录</span>
+          </button>
+          <button id="settings-button" class="hud-button" type="button" aria-label="设置">
+            <i class="ph ph-gear-six"></i><span>设置</span>
+          </button>
+        </nav>
+      </header>
+
+      <section id="dialogue" class="dialogue hidden" aria-label="对话">
+        <div id="speaker" class="speaker"></div>
+        <p id="dialogue-text" class="dialogue-text"></p>
+        <button id="advance-button" class="advance-button" type="button" aria-label="继续对话">
+          <span>继续</span><i class="ph ph-caret-down"></i>
+        </button>
+      </section>
+
+      <section id="choice-panel" class="choice-panel hidden" aria-label="对话选项"></section>
+      <section id="overlay" class="overlay hidden" aria-live="polite"></section>
+
+      <section id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <header class="modal-heading">
+          <h2 id="modal-title">证物</h2>
+          <button id="modal-close" class="close-button" type="button" aria-label="关闭">
+            <i class="ph ph-x"></i>
+          </button>
+        </header>
+        <div id="modal-body" class="modal-body"></div>
+      </section>
+      <button id="modal-scrim" class="modal-scrim hidden" type="button" aria-label="关闭弹窗"></button>
+      <div id="toast" class="toast hidden" role="status"></div>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
