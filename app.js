@@ -308,13 +308,14 @@ function showSpeakerPortrait(speaker, text = "", requestedExpression) {
   const portraitKey = `${character.id}-${expression}`;
   if (state.activePortrait === portraitKey && layer.firstElementChild) return;
   state.activePortrait = portraitKey;
-  const portraitAsset = character.frames?.[expression] || character.expressions;
+  const expressionAsset = character.frames?.[expression];
+  const usesExpressionOverlay = expression > 0 && character.frames?.[0] && expressionAsset;
+  const portraitAsset = usesExpressionOverlay ? character.frames[0] : expressionAsset || character.expressions;
   const frameClass = character.frames ? " portrait-frame" : "";
-  const portraitMask = character.frameMasks?.[expression];
-  const maskClass = portraitMask ? " portrait-masked" : "";
+  const overlayClass = usesExpressionOverlay ? " portrait-expression-overlay" : "";
   const expressionLabel = character.expressionLabels?.[expression] || `expression-${expression}`;
-  const maskStyle = portraitMask ? `;--portrait-mask:url('${portraitMask}')` : "";
-  layer.innerHTML = `<div class="speaker-portrait${frameClass}${maskClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}" data-expression="${expressionLabel}" style="--portrait-sheet:url('${portraitAsset}')${maskStyle}"></div>`;
+  const overlayStyle = usesExpressionOverlay ? `;--portrait-expression:url('${expressionAsset}')` : "";
+  layer.innerHTML = `<div class="speaker-portrait${frameClass}${overlayClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}" data-expression="${expressionLabel}" style="--portrait-sheet:url('${portraitAsset}')${overlayStyle}"></div>`;
 }
 
 function clearTyping() {
