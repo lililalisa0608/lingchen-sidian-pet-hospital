@@ -60,6 +60,10 @@ const state = {
   volume: Number(localStorage.getItem("mystery-volume") ?? 34),
   muted: localStorage.getItem("mystery-muted") === "true",
   activePortrait: "",
+  interactionScroll: {
+    search: null,
+    suspects: null,
+  },
 };
 
 const audio = {
@@ -409,6 +413,8 @@ function startOpening() {
   state.facts.clear();
   state.qinDone.clear();
   state.searchFound.clear();
+  state.interactionScroll.search = null;
+  state.interactionScroll.suspects = null;
   state.dialogueHistory = [];
   updateEvidenceCount();
   resetPanels();
@@ -490,7 +496,7 @@ function renderQinHub() {
       <i class="connector connector-1"></i><i class="connector connector-2"></i>
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
     </div>
-    <div id="topic-list" class="topic-list" aria-label="询问话题"></div>
+    <div id="topic-list" class="topic-list" aria-label="询问话题"><p class="topic-list-label">选择询问话题</p></div>
     <button id="finish-qin" class="finish-button" type="button" disabled>结束询问</button>`);
 
   const list = document.querySelector("#topic-list");
@@ -546,10 +552,15 @@ function renderSearch() {
   const requiredFound = ["rack", "reports", "seam"].filter((key) => state.searchFound.has(key)).length;
   setHud("第二诊室", requiredFound === 3 ? "关键证物已齐" : `调查 ${requiredFound}/3`, true);
   setStage("search interaction-stage", backgrounds.clinic, `
-    <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.clinic}')">
-      <div id="hotspots" class="hotspots" aria-label="可调查区域"></div>
-      <button id="leave-search" class="leave-button" type="button" ${requiredFound < 3 ? "disabled" : ""}>离开现场</button>
-    </div>`);
+    <div id="interaction-scroll" class="interaction-scroll">
+      <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.clinic}')">
+        <div id="hotspots" class="hotspots" aria-label="可调查区域"></div>
+      </div>
+    </div>
+    <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击可疑位置</span></p>
+    <button id="leave-search" class="leave-button" type="button" ${requiredFound < 3 ? "disabled" : ""}>离开现场</button>`);
+
+  setupInteractionScroll("search");
 
   const spots = document.querySelector("#hotspots");
   spots.addEventListener("pointermove", () => spots.classList.add("armed"), { once: true });
@@ -589,16 +600,33 @@ function renderPeopleSelection() {
   resetPanels();
   setHud("等候区", "选择询问对象", true);
   setStage("suspects interaction-stage", backgrounds.waitingCast, `
-    <div class="interaction-canvas suspect-canvas" style="--interaction-bg:url('${backgrounds.waitingCast}')">
-      <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
-      <div class="suspect-map">
-        <button class="suspect-zone suspect-tang" data-person="唐宁" type="button"><span><b>唐宁</b><small>医院助理 · 报警人</small></span></button>
-        <button class="suspect-zone suspect-su" data-person="苏青" type="button"><span><b>苏青</b><small>宠物博主 · 奶糖主人</small></span></button>
-        <button class="suspect-zone suspect-lin" data-person="林夏" type="button"><span><b>林夏</b><small>动物救助者 · 旺旺送诊人</small></span></button>
+    <div id="interaction-scroll" class="interaction-scroll">
+      <div class="interaction-canvas suspect-canvas" style="--interaction-bg:url('${backgrounds.waitingCast}')">
+        <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
+        <div class="suspect-map">
+          <button class="suspect-zone suspect-tang" data-person="唐宁" type="button"><span><b>唐宁</b><small>医院助理 · 报警人</small></span></button>
+          <button class="suspect-zone suspect-su" data-person="苏青" type="button"><span><b>苏青</b><small>宠物博主 · 奶糖主人</small></span></button>
+          <button class="suspect-zone suspect-lin" data-person="林夏" type="button"><span><b>林夏</b><small>动物救助者 · 旺旺送诊人</small></span></button>
+        </div>
       </div>
-    </div>`);
+    </div>
+    <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击人物进行询问</span></p>`);
+  setupInteractionScroll("suspects");
   document.querySelectorAll("[data-person]").forEach((button) => {
     button.addEventListener("click", () => showToast(`${button.dataset.person}的询问将在下一段开放`));
+  });
+}
+
+function setupInteractionScroll(key) {
+  const scroller = document.querySelector("#interaction-scroll");
+  if (!scroller) return;
+  window.requestAnimationFrame(() => {
+    const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    const saved = state.interactionScroll[key];
+    scroller.scrollLeft = saved === null ? maxScroll / 2 : Math.min(saved, maxScroll);
+    scroller.addEventListener("scroll", () => {
+      state.interactionScroll[key] = scroller.scrollLeft;
+    }, { passive: true });
   });
 }
 
