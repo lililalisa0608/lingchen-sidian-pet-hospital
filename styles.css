@@ -153,7 +153,13 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 /* Evidence acquired */
 .overlay { position: fixed; z-index: 70; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(13,25,22,.66); }
 .evidence-reveal { display: grid; grid-template-columns: minmax(250px, .95fr) minmax(320px, 1.05fr); width: min(910px, 100%); min-height: 440px; overflow: hidden; border: 1px solid rgba(255,255,255,.84); border-radius: 4px; color: var(--ink); background: var(--paper); box-shadow: 0 28px 80px rgba(12,25,22,.36); }
-.evidence-reveal > img { width: 100%; height: 100%; min-height: 440px; object-fit: cover; }
+.evidence-reveal-media { position: relative; min-height: 440px; margin: 0; overflow: hidden; background: linear-gradient(115deg, #d8dedb 8%, #edf0ee 20%, #d8dedb 32%); background-size: 220% 100%; animation: evidenceShimmer 1.25s linear infinite; }
+.evidence-reveal-media::after { content: "正在读取证物影像…"; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); color: #65716d; font-size: 12px; letter-spacing: .06em; white-space: nowrap; }
+.evidence-reveal-media img { width: 100%; height: 100%; min-height: 440px; object-fit: cover; opacity: 0; transition: opacity .18s ease; }
+.evidence-reveal-media.loaded { animation: none; background: #dfe4e1; }
+.evidence-reveal-media.loaded::after { display: none; }
+.evidence-reveal-media.loaded img { opacity: 1; }
+@keyframes evidenceShimmer { to { background-position-x: -220%; } }
 .evidence-reveal-copy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 44px; }
 .evidence-reveal-copy small { color: var(--green-2); font-size: 12px; font-weight: 700; letter-spacing: .12em; }
 .evidence-reveal-copy h2 { margin: 10px 0 16px; font: 560 32px "Noto Serif SC", "Songti SC", serif; }
@@ -252,7 +258,8 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .topic-connectors { display: none; }
   .finish-button { min-width: 190px; bottom: 15px; }
   .evidence-reveal { grid-template-columns: 1fr; max-height: calc(100vh - 40px); overflow-y: auto; }
-  .evidence-reveal > img { min-height: 0; height: 240px; }
+  .evidence-reveal-media { min-height: 240px; height: 240px; }
+  .evidence-reveal-media img { min-height: 0; height: 240px; }
   .evidence-reveal-copy { padding: 26px; }
   .modal { width: calc(100% - 24px); max-height: calc(100vh - 24px); }
   .modal-heading { padding: 18px; }

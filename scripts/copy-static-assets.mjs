@@ -25,10 +25,10 @@ const requiredAssets = [
   "characters/xu-zhiheng-expression-1-v1.png",
   "characters/xu-zhiheng-expression-2-v1.png",
   "characters/xu-zhiheng-expressions-v1.png",
-  "evidence/hair-v2.png",
-  "evidence/injury-v2.png",
-  "evidence/rack-scene-v3.png",
-  "evidence/reports-v3.png",
+  "evidence/hair-v2.webp",
+  "evidence/injury-v2.webp",
+  "evidence/rack-scene-v3.webp",
+  "evidence/reports-v3.webp",
 ];
 
 for (const directory of ["audio", "backgrounds", "characters", "evidence"]) {

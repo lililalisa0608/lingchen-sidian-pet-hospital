@@ -44,6 +44,25 @@ const preloadedBackgrounds = Object.values(backgrounds).map((src) => {
   return image;
 });
 
+const preloadedEvidenceImages = new Map();
+let evidencePreloadScheduled = false;
+
+function scheduleEvidencePreload() {
+  if (evidencePreloadScheduled) return;
+  evidencePreloadScheduled = true;
+  const preload = () => {
+    Object.values(data.evidence).forEach((item) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = item.image;
+      preloadedEvidenceImages.set(item.image, image);
+      image.decode?.().catch(() => {});
+    });
+  };
+  if ("requestIdleCallback" in window) window.requestIdleCallback(preload, { timeout: 1200 });
+  else window.setTimeout(preload, 350);
+}
+
 const state = {
   evidence: new Set(),
   facts: new Set(),
@@ -374,7 +393,9 @@ function addEvidence(key, done) {
   audio.cue("evidence");
   els.overlay.innerHTML = `
     <article class="evidence-reveal">
-      <img src="${item.image}" alt="${item.name}" />
+      <figure class="evidence-reveal-media">
+        <img src="${item.image}" alt="${item.name}" decoding="async" />
+      </figure>
       <div class="evidence-reveal-copy">
         <small>获得证物 · ${item.id}</small>
         <h2>${item.name}</h2>
@@ -383,6 +404,11 @@ function addEvidence(key, done) {
       </div>
     </article>`;
   els.overlay.classList.remove("hidden");
+  const revealMedia = els.overlay.querySelector(".evidence-reveal-media");
+  const revealImage = revealMedia.querySelector("img");
+  const showImage = () => revealMedia.classList.add("loaded");
+  if (revealImage.complete && revealImage.naturalWidth) showImage();
+  else revealImage.addEventListener("load", showImage, { once: true });
   document.querySelector("#accept-evidence").addEventListener("click", () => {
     els.overlay.classList.add("hidden");
     els.overlay.innerHTML = "";
@@ -404,6 +430,7 @@ function renderStart() {
     <div class="sound-state"><i class="ph ph-speaker-high"></i> 点击进入后播放背景音乐与剧情音效 · 可在设置中关闭</div>`);
   document.querySelector("#start-game").addEventListener("click", () => {
     audio.init();
+    scheduleEvidencePreload();
     startOpening();
   });
 }
