@@ -27,14 +27,14 @@ const els = {
 };
 
 const backgrounds = {
-  cover: "./assets/backgrounds/cover-clinic-interior-v1.png",
-  phone: "./assets/backgrounds/opening-phone-v2.png",
-  exterior: "./assets/backgrounds/hospital-exterior-v2.png",
-  title: "./assets/backgrounds/title-transition-v3.png",
-  waiting: "./assets/backgrounds/waiting-area-clean-v1.png",
-  waitingCast: "./assets/backgrounds/waiting-area-cast-v2.png",
-  corridor: "./assets/backgrounds/second-consultation-corridor-v1.png",
-  clinic: "./assets/backgrounds/second-consultation-evidence-v4.png",
+  cover: "/assets/backgrounds/cover-clinic-interior-v1.png",
+  phone: "/assets/backgrounds/opening-phone-v2.png",
+  exterior: "/assets/backgrounds/hospital-exterior-v2.png",
+  title: "/assets/backgrounds/title-transition-v3.png",
+  waiting: "/assets/backgrounds/waiting-area-clean-v1.png",
+  waitingCast: "/assets/backgrounds/waiting-area-cast-v2.png",
+  corridor: "/assets/backgrounds/second-consultation-corridor-v1.png",
+  clinic: "/assets/backgrounds/second-consultation-evidence-v4.png",
 };
 
 // Warm the browser cache so a scene swap never exposes the stage fallback color.
@@ -68,7 +68,7 @@ const audio = {
   bgm: null,
   init() {
     if (!this.bgm) {
-      this.bgm = new Audio("./assets/audio/unsolved-investigation.ogg");
+      this.bgm = new Audio("/assets/audio/unsolved-investigation.ogg");
       this.bgm.loop = true;
       this.bgm.preload = "auto";
     }
