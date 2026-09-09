@@ -31,7 +31,9 @@ const requiredAssets = [
   "evidence/reports-v3.png",
 ];
 
-await rm(destination, { recursive: true, force: true });
+for (const directory of ["audio", "backgrounds", "characters", "evidence"]) {
+  await rm(resolve(destination, directory), { recursive: true, force: true });
+}
 
 for (const relativePath of requiredAssets) {
   const outputPath = resolve(destination, relativePath);
