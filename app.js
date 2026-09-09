@@ -47,6 +47,13 @@ const preloadedBackgrounds = Object.values(backgrounds).map((src) => {
 const preloadedEvidenceImages = new Map();
 let evidencePreloadScheduled = false;
 
+Object.values(data.characters).flatMap((character) => character.frames || [character.expressions]).forEach((src) => {
+  if (!src) return;
+  const image = new Image();
+  image.decoding = "async";
+  image.src = src;
+});
+
 function scheduleEvidencePreload() {
   if (evidencePreloadScheduled) return;
   evidencePreloadScheduled = true;
@@ -67,6 +74,13 @@ const state = {
   evidence: new Set(),
   facts: new Set(),
   qinDone: new Set(),
+  witnessTopicsDone: {
+    tang: new Set(),
+    su: new Set(),
+    lin: new Set(),
+  },
+  witnessesStarted: new Set(),
+  witnessesDone: new Set(),
   searchFound: new Set(),
   dialogueQueue: [],
   dialogueDone: null,
@@ -252,6 +266,9 @@ function getCharacter(speaker) {
   if (speaker.startsWith("许知衡")) return data.characters.xu;
   if (speaker.startsWith("江跃")) return data.characters.jiang;
   if (speaker.startsWith("秦昭")) return data.characters.qin;
+  if (speaker.startsWith("唐宁")) return data.characters.tang;
+  if (speaker.startsWith("苏青")) return data.characters.su;
+  if (speaker.startsWith("林夏")) return data.characters.lin;
   return null;
 }
 
@@ -439,6 +456,9 @@ function startOpening() {
   state.evidence.clear();
   state.facts.clear();
   state.qinDone.clear();
+  Object.values(state.witnessTopicsDone).forEach((topics) => topics.clear());
+  state.witnessesStarted.clear();
+  state.witnessesDone.clear();
   state.searchFound.clear();
   state.interactionScroll.search = null;
   state.interactionScroll.suspects = null;
@@ -625,23 +645,116 @@ function inspectSpot(key, spot) {
 
 function renderPeopleSelection() {
   resetPanels();
-  setHud("等候区", "选择询问对象", true);
+  setHud("等候区", `第一轮询问 ${state.witnessesDone.size}/3`, true);
   setStage("suspects interaction-stage", backgrounds.waitingCast, `
     <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
     <div id="interaction-scroll" class="interaction-scroll">
       <div class="interaction-canvas suspect-canvas" style="--interaction-bg:url('${backgrounds.waitingCast}')">
         <div class="suspect-map">
-          <button class="suspect-zone suspect-tang" data-person="唐宁" type="button"><span><b>唐宁</b><small>医院助理 · 报警人</small></span></button>
-          <button class="suspect-zone suspect-su" data-person="苏青" type="button"><span><b>苏青</b><small>宠物博主 · 奶糖主人</small></span></button>
-          <button class="suspect-zone suspect-lin" data-person="林夏" type="button"><span><b>林夏</b><small>动物救助者 · 旺旺送诊人</small></span></button>
+          ${renderSuspectZone("tang", "suspect-tang")}
+          ${renderSuspectZone("su", "suspect-su")}
+          ${renderSuspectZone("lin", "suspect-lin")}
         </div>
       </div>
     </div>
-    <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击人物进行询问</span></p>`);
+    <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击人物进行询问</span></p>
+    <button id="finish-first-round" class="finish-button round-finish" type="button" ${state.witnessesDone.size < 3 ? "disabled" : ""}>结束第一轮询问</button>`);
   setupInteractionScroll("suspects");
-  document.querySelectorAll("[data-person]").forEach((button) => {
-    button.addEventListener("click", () => showToast(`${button.dataset.person}的询问将在下一段开放`));
+  document.querySelectorAll("[data-witness]").forEach((button) => {
+    button.addEventListener("click", () => openWitness(button.dataset.witness));
   });
+  document.querySelector("#finish-first-round").addEventListener("click", finishFirstRound);
+}
+
+function renderSuspectZone(key, className) {
+  const witness = data.witnesses[key];
+  const complete = state.witnessesDone.has(key);
+  const progress = state.witnessTopicsDone[key].size;
+  return `<button class="suspect-zone ${className}${complete ? " complete" : ""}" data-witness="${key}" type="button">
+    <span><b>${witness.name}${complete ? ' <i class="ph ph-check-circle"></i>' : ""}</b><small>${witness.role} · ${witness.relation}</small><em>${complete ? "询问完成" : `${progress}/4 个话题`}</em></span>
+  </button>`;
+}
+
+function openWitness(key) {
+  const witness = data.witnesses[key];
+  if (!witness) return;
+  if (state.witnessesStarted.has(key)) {
+    renderWitnessHub(key);
+    return;
+  }
+  state.witnessesStarted.add(key);
+  resetPanels();
+  setHud(`询问${witness.name}`, "第一轮", true);
+  setStage("scene scene-transition", backgrounds.waiting);
+  runDialogue(witness.intro, () => renderWitnessHub(key));
+}
+
+function renderWitnessHub(key) {
+  const witness = data.witnesses[key];
+  const character = data.characters[key];
+  const completedTopics = state.witnessTopicsDone[key];
+  resetPanels();
+  setHud(`询问${witness.name}`, `${completedTopics.size}/${witness.topics.length}`, true);
+  setStage("topic witness-topic", backgrounds.waiting, `
+    <div class="topic-focus"></div>
+    <div class="topic-person witness-person witness-${key}" style="--portrait-sheet:url('${character.frames[0]}')" aria-label="${witness.name}"></div>
+    <div class="witness-identity"><strong>${witness.name}</strong><span>${witness.role} · ${witness.relation}</span></div>
+    <div class="topic-connectors" aria-hidden="true">
+      <i class="connector connector-1"></i><i class="connector connector-2"></i>
+      <i class="connector connector-3"></i><i class="connector connector-4"></i>
+    </div>
+    <div id="topic-list" class="topic-list" aria-label="询问话题"><p class="topic-list-label">选择询问话题</p></div>
+    <button id="finish-witness" class="finish-button" type="button" ${completedTopics.size < witness.topics.length ? "disabled" : ""}>结束询问</button>`);
+
+  const list = document.querySelector("#topic-list");
+  witness.topics.forEach((topic, index) => {
+    const complete = completedTopics.has(topic.id);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `topic-button topic-${index + 1}${complete ? " complete" : ""}`;
+    button.innerHTML = `<span>${topic.label}</span><i class="ph ${complete ? "ph-check" : "ph-plus"}"></i>`;
+    button.addEventListener("click", () => openWitnessTopic(key, topic));
+    list.append(button);
+  });
+
+  document.querySelector("#finish-witness").addEventListener("click", () => {
+    state.witnessesDone.add(key);
+    renderPeopleSelection();
+  });
+}
+
+function openWitnessTopic(key, topic) {
+  const witness = data.witnesses[key];
+  resetPanels();
+  setHud(`询问${witness.name}`, topic.label, true);
+  setStage("scene", backgrounds.waiting);
+  runDialogue(topic.lines, () => {
+    const wasComplete = state.witnessTopicsDone[key].has(topic.id);
+    state.witnessTopicsDone[key].add(topic.id);
+    if (!wasComplete) audio.cue();
+    renderWitnessHub(key);
+  });
+}
+
+function finishFirstRound() {
+  if (state.witnessesDone.size < 3) return;
+  resetPanels();
+  setHud("医院等候区", "05:24", true);
+  setStage("scene scene-transition", backgrounds.waiting);
+  runDialogue(data.firstRoundEnding, renderChapterEnd);
+}
+
+function renderChapterEnd() {
+  resetPanels();
+  setHud("第二轮调查", "隔离间已开放", true);
+  setStage("search-intro chapter-end", backgrounds.corridor, `
+    <section class="search-briefing chapter-end-copy">
+      <p>第一轮询问完成</p>
+      <h1>下一地点：隔离间</h1>
+      <span>三人的陈述已记入对话记录。接下来，需要检查旺旺曾经接受治疗的隔离间。</span>
+      <button id="restart-game" class="primary-button" type="button">重新体验本章 <i class="ph ph-arrow-counter-clockwise"></i></button>
+    </section>`);
+  document.querySelector("#restart-game").addEventListener("click", startOpening);
 }
 
 function setupInteractionScroll(key) {
