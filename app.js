@@ -310,7 +310,11 @@ function showSpeakerPortrait(speaker, text = "", requestedExpression) {
   state.activePortrait = portraitKey;
   const portraitAsset = character.frames?.[expression] || character.expressions;
   const frameClass = character.frames ? " portrait-frame" : "";
-  layer.innerHTML = `<div class="speaker-portrait${frameClass} portrait-${character.side} portrait-${character.id} expression-${expression}" style="--portrait-sheet:url('${portraitAsset}')"></div>`;
+  const portraitMask = character.frameMasks?.[expression];
+  const maskClass = portraitMask ? " portrait-masked" : "";
+  const expressionLabel = character.expressionLabels?.[expression] || `expression-${expression}`;
+  const maskStyle = portraitMask ? `;--portrait-mask:url('${portraitMask}')` : "";
+  layer.innerHTML = `<div class="speaker-portrait${frameClass}${maskClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}" data-expression="${expressionLabel}" style="--portrait-sheet:url('${portraitAsset}')${maskStyle}"></div>`;
 }
 
 function clearTyping() {

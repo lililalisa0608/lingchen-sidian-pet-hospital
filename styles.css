@@ -64,8 +64,12 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .portrait-xu { bottom: -9vh; width: 52vh; height: 104vh; }
 .portrait-xu, .portrait-jiang { --portrait-flip: -1; }
 .portrait-frame { background-position: center bottom !important; background-size: contain; }
+.portrait-masked { -webkit-mask-image: var(--portrait-mask); mask-image: var(--portrait-mask); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 .portrait-qin { bottom: 14vh; width: 49vh; height: 73.5vh; }
-.portrait-tang, .portrait-su, .portrait-lin { bottom: 9vh; width: 39vh; height: 82vh; }
+.portrait-tang, .portrait-su, .portrait-lin { top: var(--portrait-top); bottom: auto; width: 58vh; height: 92vh; background-position: center top !important; background-size: auto var(--portrait-scale) !important; -webkit-mask-position: center top; mask-position: center top; -webkit-mask-size: auto var(--portrait-scale); mask-size: auto var(--portrait-scale); }
+.portrait-tang { --portrait-scale: 119vh; --portrait-top: 3vh; }
+.portrait-su { --portrait-scale: 114vh; --portrait-top: 6vh; }
+.portrait-lin { --portrait-scale: 116vh; --portrait-top: 4.5vh; }
 .expression-0 { background-position: 0% center; }
 .expression-1 { background-position: 50% center; }
 .expression-2 { background-position: 100% center; }
@@ -123,7 +127,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .connector-4::after { left: -4px; top: -4px; }
 .finish-button { position: absolute; z-index: 9; left: 50%; bottom: 22px; min-width: 228px; min-height: 50px; transform: translateX(-50%); border: 1px solid rgba(255,255,255,.75); border-radius: 3px; color: #fff; background: rgba(24,63,54,.94); box-shadow: var(--soft-shadow); cursor: pointer; }
 .finish-button:disabled { color: rgba(45,57,53,.46); border-color: rgba(39,62,55,.18); background: rgba(243,242,237,.8); box-shadow: none; cursor: not-allowed; }
-.witness-person { width: min(42vw, 420px); height: 78vh; aspect-ratio: auto; background-position: center bottom; background-size: contain; }
+.witness-person { width: min(58vw, 590px); height: 78vh; aspect-ratio: auto; background-position: center top; background-size: auto var(--topic-portrait-scale); }
+.witness-tang { --topic-portrait-scale: 119vh; bottom: 7vh; }
+.witness-su { --topic-portrait-scale: 114vh; bottom: 8.5vh; }
+.witness-lin { --topic-portrait-scale: 116vh; bottom: 7.5vh; }
 .witness-identity { position: absolute; z-index: 8; left: 50%; top: 14%; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); color: #fff; text-align: center; text-shadow: 0 3px 15px rgba(7,20,16,.78); }
 .witness-identity strong { font: 560 30px "Noto Serif SC", "Songti SC", serif; letter-spacing: .08em; }
 .witness-identity span { margin-top: 5px; color: rgba(255,255,255,.76); font-size: 12px; letter-spacing: .08em; }
@@ -254,7 +261,10 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .portrait-jiang { bottom: -2vh; width: 39vh; }
   .portrait-xu { bottom: -5vh; width: 44vh; height: 86vh; }
   .portrait-qin { bottom: 12vh; width: 42vh; height: 63vh; }
-  .portrait-tang, .portrait-su, .portrait-lin { bottom: 11vh; width: 36vh; height: 72vh; }
+  .portrait-tang, .portrait-su, .portrait-lin { top: var(--portrait-top-mobile); bottom: auto; width: min(84vw, 380px); height: calc(100dvh - 210px); background-size: auto var(--portrait-scale-mobile) !important; -webkit-mask-size: auto var(--portrait-scale-mobile); mask-size: auto var(--portrait-scale-mobile); }
+  .portrait-tang { --portrait-scale-mobile: 98dvh; --portrait-top-mobile: 58px; }
+  .portrait-su { --portrait-scale-mobile: 94dvh; --portrait-top-mobile: 68px; }
+  .portrait-lin { --portrait-scale-mobile: 96dvh; --portrait-top-mobile: 62px; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }
   .dialogue { bottom: 14px; width: calc(100% - 28px); min-height: 205px; padding: 51px 24px 36px; }
@@ -295,7 +305,10 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .stage-topic { background-position: 58% center; }
   .stage-topic::after { background: linear-gradient(180deg, transparent 0 51%, rgba(15,27,24,.2) 64%, rgba(15,27,24,.5) 100%); }
   .topic-person { top: 68px; bottom: auto; width: min(78vw, 320px); height: auto; aspect-ratio: 2 / 3; }
-  .witness-person { top: 74px; width: min(68vw, 284px); height: calc(100dvh - 292px); min-height: 330px; aspect-ratio: auto; background-position: center bottom; background-size: contain; }
+  .witness-person { top: 74px; width: min(84vw, 350px); height: calc(100dvh - 292px); min-height: 330px; aspect-ratio: auto; background-position: center top; background-size: auto var(--topic-portrait-scale-mobile); }
+  .witness-tang { --topic-portrait-scale-mobile: 99dvh; }
+  .witness-su { --topic-portrait-scale-mobile: 95dvh; }
+  .witness-lin { --topic-portrait-scale-mobile: 97dvh; }
   .witness-identity { top: 76px; left: 14px; align-items: flex-start; transform: none; text-align: left; }
   .witness-identity strong { font-size: 22px; }
   .witness-identity span { max-width: 100px; font-size: 10px; line-height: 1.5; }
