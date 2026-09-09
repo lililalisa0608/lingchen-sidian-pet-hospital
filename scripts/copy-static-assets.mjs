@@ -1,4 +1,4 @@
-import { cp, mkdir } from "node:fs/promises";
+import { copyFile, mkdir, rm } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -6,5 +6,35 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = resolve(projectRoot, "assets");
 const destination = resolve(projectRoot, "dist", "assets");
 
-await mkdir(destination, { recursive: true });
-await cp(source, destination, { recursive: true, force: true });
+const requiredAssets = [
+  "audio/unsolved-investigation.ogg",
+  "backgrounds/cover-clinic-interior-v1.png",
+  "backgrounds/hospital-exterior-v2.png",
+  "backgrounds/opening-phone-v2.png",
+  "backgrounds/second-consultation-corridor-v1.png",
+  "backgrounds/second-consultation-evidence-v4.png",
+  "backgrounds/title-transition-v3.png",
+  "backgrounds/waiting-area-cast-v2.png",
+  "backgrounds/waiting-area-clean-v1.png",
+  "characters/jiang-yue-expression-0-v1.png",
+  "characters/jiang-yue-expression-1-v1.png",
+  "characters/jiang-yue-expression-2-v1.png",
+  "characters/jiang-yue-expressions-v1.png",
+  "characters/qin-zhao-expressions-v1.png",
+  "characters/xu-zhiheng-expression-0-v1.png",
+  "characters/xu-zhiheng-expression-1-v1.png",
+  "characters/xu-zhiheng-expression-2-v1.png",
+  "characters/xu-zhiheng-expressions-v1.png",
+  "evidence/hair-v2.png",
+  "evidence/injury-v2.png",
+  "evidence/rack-scene-v3.png",
+  "evidence/reports-v3.png",
+];
+
+await rm(destination, { recursive: true, force: true });
+
+for (const relativePath of requiredAssets) {
+  const outputPath = resolve(destination, relativePath);
+  await mkdir(dirname(outputPath), { recursive: true });
+  await copyFile(resolve(source, relativePath), outputPath);
+}
