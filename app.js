@@ -518,9 +518,11 @@ function renderSearch() {
   resetPanels();
   const requiredFound = ["rack", "reports", "seam"].filter((key) => state.searchFound.has(key)).length;
   setHud("第二诊室", requiredFound === 3 ? "关键证物已齐" : `调查 ${requiredFound}/3`, true);
-  setStage("search", backgrounds.clinic, `
-    <div id="hotspots" class="hotspots" aria-label="可调查区域"></div>
-    <button id="leave-search" class="leave-button" type="button" ${requiredFound < 3 ? "disabled" : ""}>离开现场</button>`);
+  setStage("search interaction-stage", backgrounds.clinic, `
+    <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.clinic}')">
+      <div id="hotspots" class="hotspots" aria-label="可调查区域"></div>
+      <button id="leave-search" class="leave-button" type="button" ${requiredFound < 3 ? "disabled" : ""}>离开现场</button>
+    </div>`);
 
   const spots = document.querySelector("#hotspots");
   spots.addEventListener("pointermove", () => spots.classList.add("armed"), { once: true });
@@ -559,12 +561,14 @@ function inspectSpot(key, spot) {
 function renderPeopleSelection() {
   resetPanels();
   setHud("等候区", "选择询问对象", true);
-  setStage("suspects", backgrounds.waitingCast, `
-    <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
-    <div class="suspect-map">
-      <button class="suspect-zone suspect-tang" data-person="唐宁" type="button"><span><b>唐宁</b><small>医院助理 · 报警人</small></span></button>
-      <button class="suspect-zone suspect-su" data-person="苏青" type="button"><span><b>苏青</b><small>宠物博主 · 奶糖主人</small></span></button>
-      <button class="suspect-zone suspect-lin" data-person="林夏" type="button"><span><b>林夏</b><small>动物救助者 · 旺旺送诊人</small></span></button>
+  setStage("suspects interaction-stage", backgrounds.waitingCast, `
+    <div class="interaction-canvas suspect-canvas" style="--interaction-bg:url('${backgrounds.waitingCast}')">
+      <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
+      <div class="suspect-map">
+        <button class="suspect-zone suspect-tang" data-person="唐宁" type="button"><span><b>唐宁</b><small>医院助理 · 报警人</small></span></button>
+        <button class="suspect-zone suspect-su" data-person="苏青" type="button"><span><b>苏青</b><small>宠物博主 · 奶糖主人</small></span></button>
+        <button class="suspect-zone suspect-lin" data-person="林夏" type="button"><span><b>林夏</b><small>动物救助者 · 旺旺送诊人</small></span></button>
+      </div>
     </div>`);
   document.querySelectorAll("[data-person]").forEach((button) => {
     button.addEventListener("click", () => showToast(`${button.dataset.person}的询问将在下一段开放`));
