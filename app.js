@@ -149,6 +149,32 @@ const audio = {
     thud.start(now + 0.3);
     thud.stop(now + 0.5);
   },
+  advance() {
+    if (!this.context || state.muted || state.volume === 0) return;
+    const now = this.context.currentTime;
+    const tone = this.context.createOscillator();
+    const overtone = this.context.createOscillator();
+    const overtoneGain = this.context.createGain();
+    const tapGain = this.context.createGain();
+
+    tone.type = "sine";
+    tone.frequency.setValueAtTime(390, now);
+    tone.frequency.exponentialRampToValueAtTime(250, now + 0.16);
+    overtone.type = "sine";
+    overtone.frequency.value = 820;
+    overtoneGain.gain.value = 0.26;
+    tapGain.gain.setValueAtTime(0.0001, now);
+    tapGain.gain.exponentialRampToValueAtTime(0.34, now + 0.003);
+    tapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+    tone.connect(tapGain);
+    overtone.connect(overtoneGain).connect(tapGain);
+    tapGain.connect(this.gain);
+    tone.start(now);
+    overtone.start(now);
+    tone.stop(now + 0.17);
+    overtone.stop(now + 0.17);
+  },
   cue(type = "soft") {
     if (!this.context || state.muted || state.volume === 0) return;
     const oscillator = this.context.createOscillator();
@@ -285,6 +311,7 @@ function advanceDialogue() {
     els.text.textContent = state.fullLine;
     return;
   }
+  audio.advance();
   nextDialogueLine();
 }
 
