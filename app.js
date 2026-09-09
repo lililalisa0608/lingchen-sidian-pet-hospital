@@ -600,9 +600,9 @@ function renderPeopleSelection() {
   resetPanels();
   setHud("等候区", "选择询问对象", true);
   setStage("suspects interaction-stage", backgrounds.waitingCast, `
+    <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
     <div id="interaction-scroll" class="interaction-scroll">
       <div class="interaction-canvas suspect-canvas" style="--interaction-bg:url('${backgrounds.waitingCast}')">
-        <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
         <div class="suspect-map">
           <button class="suspect-zone suspect-tang" data-person="唐宁" type="button"><span><b>唐宁</b><small>医院助理 · 报警人</small></span></button>
           <button class="suspect-zone suspect-su" data-person="苏青" type="button"><span><b>苏青</b><small>宠物博主 · 奶糖主人</small></span></button>
