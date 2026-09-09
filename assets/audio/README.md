@@ -1,4 +1,13 @@
-# Audio credit
+# Audio credits
+
+## Default background music
+
+`clean-soul.m4a` is a web-optimized encode of “Clean Soul” by Kevin MacLeod.
+
+- Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1300033
+- License: Creative Commons Attribution 4.0
+
+## Previous background music
 
 `unsolved-investigation.ogg` is “Unsolved Investigation” by isaiah658, downloaded from OpenGameArt.
 

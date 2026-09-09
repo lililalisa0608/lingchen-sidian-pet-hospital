@@ -68,7 +68,7 @@ const audio = {
   bgm: null,
   init() {
     if (!this.bgm) {
-      this.bgm = new Audio("/assets/audio/unsolved-investigation.ogg");
+      this.bgm = new Audio("/assets/audio/clean-soul.m4a");
       this.bgm.loop = true;
       this.bgm.preload = "auto";
     }
