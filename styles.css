@@ -254,9 +254,12 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .portrait-jiang { bottom: -2vh; width: 39vh; }
   .portrait-xu { bottom: -5vh; width: 44vh; height: 86vh; }
   .portrait-qin { bottom: 12vh; width: 42vh; height: 63vh; }
-  .portrait-tang { bottom: -2dvh; width: 62dvh; height: 93dvh; }
-  .portrait-lin { bottom: 10dvh; width: 52.6dvh; height: 80dvh; }
-  .portrait-su { bottom: 17dvh; width: 47dvh; height: 70dvh; }
+  /* Witnesses reuse Qin Zhao's right-side mobile portrait template. Their
+     small bottom offsets express height without changing apparent head size. */
+  .portrait-tang, .portrait-lin { width: 48dvh; height: 72dvh; }
+  .portrait-tang { bottom: 8dvh; }
+  .portrait-lin { bottom: 1.5dvh; }
+  .portrait-su { bottom: 5dvh; width: 46.7dvh; height: 70dvh; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }
   .dialogue { bottom: 14px; width: calc(100% - 28px); min-height: 205px; padding: 51px 24px 36px; }
@@ -298,6 +301,10 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .stage-topic::after { background: linear-gradient(180deg, transparent 0 51%, rgba(15,27,24,.2) 64%, rgba(15,27,24,.5) 100%); }
   .topic-person { top: 68px; bottom: auto; width: min(78vw, 320px); height: auto; aspect-ratio: 2 / 3; }
   .witness-person { top: 68px; width: min(78vw, 320px); height: auto; aspect-ratio: 2 / 3; background-position: center bottom; background-size: contain; }
+  /* Normalize each source canvas to Qin Zhao's apparent face scale while
+     preserving the exact inquiry container and compact topic-grid layout. */
+  .witness-tang, .witness-lin { background-position: center 10px; background-size: auto 120%; }
+  .witness-su { background-position: center 10px; background-size: auto 110%; }
   .topic-list { inset: auto 12px 72px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; padding: 11px; border: 1px solid rgba(255,255,255,.6); border-radius: 5px; background: rgba(247,245,239,.94); box-shadow: 0 14px 34px rgba(10,24,20,.28); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
   .topic-list-label { display: flex; grid-column: 1 / -1; align-items: center; gap: 8px; margin: 0 2px 1px; color: #65716d; font-size: 11px; letter-spacing: .08em; }
   .topic-list-label::before { content: ""; width: 18px; height: 1px; background: var(--green-2); }

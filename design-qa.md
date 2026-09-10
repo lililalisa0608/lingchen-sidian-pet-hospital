@@ -72,6 +72,33 @@ final result: passed
 
 ---
 
+## Mobile witness layout parity pass
+
+### Finding
+
+- P1: Tang Ning, Su Qing, and Lin Xia still used three unrelated mobile dialogue boxes, so their visible head scale and vertical anchors diverged from Xu Zhiheng, Jiang Yue, and Qin Zhao even though desktop had been calibrated.
+- P1: Their portrait-mode inquiry images used the same `contain` rule despite materially different transparent canvas margins, producing visibly different face sizes inside Qin Zhao's otherwise identical inquiry frame.
+
+### Implemented correction
+
+- Replaced the three ad-hoc mobile dialogue boxes with the protagonist group's right-side portrait template and calibrated only intrinsic-ratio width/height plus the bottom anchor needed for each source asset.
+- Preserved the requested mobile crown-height order: Xu Zhiheng, Tang Ning, Jiang Yue, Lin Xia, then Qin Zhao and Su Qing at approximately the same height.
+- Reused Qin Zhao's exact portrait-mode inquiry container, card grid, bottom fade, and finish-button geometry; only source-canvas compensation differs so the visible heads land at the same scale.
+- Neutral and alternate frames retain identical geometry, so expression changes do not jump, stretch, or drift.
+
+### Verification
+
+- Same-viewport mobile comparison performed at 393 × 852 CSS px for Xu Zhiheng, Jiang Yue, Qin Zhao, Tang Ning, Su Qing, and Lin Xia.
+- Tang Ning, Su Qing, and Lin Xia inquiry screens were compared directly with Qin Zhao's inquiry screen at the same viewport.
+- Source aspect ratios remain intact; no `scaleY`, non-uniform transform, or raster stretching is used.
+- Production build passed after removing the temporary portrait-QA route.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Lin Xia right-edge repair
 
 ### Finding
