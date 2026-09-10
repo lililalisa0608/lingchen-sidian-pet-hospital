@@ -99,6 +99,33 @@ final result: passed
 
 ---
 
+## Tang Ning desktop alignment correction
+
+### Source visual truth
+
+- User-reported oversized and left-shifted Tang Ning dialogue portrait: `/var/folders/js/200hxcrs2nbcv8sx79j7l_740000gn/T/codex-clipboard-f0adf22e-ffbc-4b94-bae4-91003ef53c3d.png`.
+- Jiang Yue comparison reference: `/var/folders/js/200hxcrs2nbcv8sx79j7l_740000gn/T/codex-clipboard-5d9bc626-fba7-4c70-bba7-d918fe49ca7b.png`.
+
+### Implemented correction
+
+- Reduced Tang Ning's desktop intrinsic-ratio box from 72 × 108 vh to 65.7 × 98.5 vh.
+- Shifted the desktop right anchor inward by 8 vh so the visible portrait center aligns with Jiang Yue despite Tang Ning's asymmetric transparent source margins.
+- Raised the lower anchor to -8.8 vh, keeping Tang Ning's crown only slightly above Jiang Yue without enlarging his head or shoulders.
+- Mobile dialogue geometry remains on its existing portrait-specific mobile calibration.
+
+### Verification
+
+- Neutral Tang Ning and Jiang Yue were inspected sequentially at the same 1710 × 984 CSS viewport; visible portrait centers align and Tang Ning's body width is now slightly narrower.
+- Tang Ning's anxious expression uses the same box and anchor and shows no jump or drift.
+- Tang Ning mobile neutral/alternate dialogue and inquiry screens were rechecked at 393 × 852 CSS px.
+- Image aspect ratio, transparency, lower dialogue overlap, inquiry layout, and expression switching remain intact.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Lin Xia right-edge repair
 
 ### Finding

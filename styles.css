@@ -66,7 +66,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .portrait-frame { background-position: center bottom !important; background-size: contain; }
 .portrait-qin { bottom: 14vh; width: 49vh; height: 73.5vh; }
 .portrait-tang, .portrait-su, .portrait-lin { top: auto; background-position: center bottom !important; background-size: contain !important; }
-.portrait-tang { bottom: -18vh; width: 72vh; height: 108vh; }
+.portrait-tang { bottom: -8.8vh; width: 65.7vh; height: 98.5vh; }
 .portrait-lin { bottom: 3vh; width: 55.5vh; height: 84vh; }
 .portrait-su { bottom: 6.5vh; width: 53.5vh; height: 80vh; }
 .expression-0 { background-position: 0% center; }
@@ -74,6 +74,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .expression-2 { background-position: 100% center; }
 .portrait-left { left: max(18px, calc(50% - 590px)); }
 .portrait-right { right: max(18px, calc(50% - 590px)); }
+.portrait-tang.portrait-right { right: max(18px, calc(50% - 590px - 8vh)); }
 @keyframes portraitIn { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
 
 .dialogue { position: fixed; z-index: 22; left: 50%; bottom: 22px; width: min(1180px, calc(100% - 48px)); min-height: 174px; transform: translateX(-50%); padding: 55px 70px 34px; border: 1px solid rgba(26,55,47,.23); border-radius: 3px; color: var(--ink); background: rgba(249,248,243,.97); box-shadow: 0 18px 58px rgba(15,29,26,.26); cursor: pointer; }
@@ -262,6 +263,7 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .portrait-su { bottom: 5dvh; width: 46.7dvh; height: 70dvh; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }
+  .portrait-tang.portrait-right { right: -4%; }
   .dialogue { bottom: 14px; width: calc(100% - 28px); min-height: 205px; padding: 51px 24px 36px; }
   .speaker { left: 17px; top: -28px; min-width: 190px; padding: 12px 20px; font-size: 16px; }
   .dialogue-text { font-size: 17px; line-height: 1.66; }
