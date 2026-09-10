@@ -119,8 +119,8 @@ const GAME_DATA = {
       id: "lin",
       name: "林夏",
       frames: [
-        "/assets/characters/lin-xia-dialogue-neutral-v4.webp",
-        "/assets/characters/lin-xia-dialogue-troubled-v4.webp",
+        "/assets/characters/lin-xia-dialogue-neutral-v5.webp",
+        "/assets/characters/lin-xia-dialogue-troubled-v5.webp",
       ],
       expressionLabels: ["neutral", "troubled"],
       side: "right",

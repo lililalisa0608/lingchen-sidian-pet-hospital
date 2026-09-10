@@ -67,7 +67,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .portrait-qin { bottom: 14vh; width: 49vh; height: 73.5vh; }
 .portrait-tang, .portrait-su, .portrait-lin { top: auto; background-position: center bottom !important; background-size: contain !important; }
 .portrait-tang { bottom: -18vh; width: 72vh; height: 108vh; }
-.portrait-lin { bottom: 3vh; width: 47.5vh; height: 84vh; }
+.portrait-lin { bottom: 3vh; width: 55.5vh; height: 84vh; }
 .portrait-su { bottom: 6.5vh; width: 53.5vh; height: 80vh; }
 .expression-0 { background-position: 0% center; }
 .expression-1 { background-position: 50% center; }
@@ -255,7 +255,7 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .portrait-xu { bottom: -5vh; width: 44vh; height: 86vh; }
   .portrait-qin { bottom: 12vh; width: 42vh; height: 63vh; }
   .portrait-tang { bottom: -2dvh; width: 62dvh; height: 93dvh; }
-  .portrait-lin { bottom: 10dvh; width: 45dvh; height: 80dvh; }
+  .portrait-lin { bottom: 10dvh; width: 52.6dvh; height: 80dvh; }
   .portrait-su { bottom: 17dvh; width: 47dvh; height: 70dvh; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }

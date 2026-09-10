@@ -72,6 +72,31 @@ final result: passed
 
 ---
 
+## Lin Xia right-edge repair
+
+### Finding
+
+- P1: Both Lin Xia dialogue frames ended at the source canvas inside her right sleeve and backpack, leaving a conspicuous vertical missing section on dialogue and inquiry screens.
+
+### Implemented correction
+
+- Reconstructed only the missing sleeve/backpack continuation in added transparent canvas space, then composited the untouched original portrait over it so the face, pose, proportions, expression art, and established layout remain unchanged.
+- The neutral and troubled expressions share the same repaired body edge, preventing geometry shifts when the expression changes.
+- Expanded Lin Xia's intrinsic-ratio frame width to account for the wider transparent canvas; visible head size and crown height remain on the previous calibrated baseline.
+
+### Post-fix evidence
+
+- Desktop neutral dialogue: `qa/implementation-dialogue-lin-right-edge-final.png`.
+- Desktop troubled dialogue: `qa/implementation-dialogue-lin-troubled-right-edge-final.png`.
+- Mobile portrait dialogue: `qa/implementation-mobile-dialogue-lin-right-edge-final.png`.
+- Desktop inquiry screen: `qa/implementation-topic-lin-right-edge-final.png`.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Published witness-portrait asset verification
 
 ### Finding and fix
