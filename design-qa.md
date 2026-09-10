@@ -72,6 +72,25 @@ final result: passed
 
 ---
 
+## Published witness-portrait asset verification
+
+### Finding and fix
+
+- P0: All six new witness dialogue-frame WebP files were referenced by `game-data.js` but absent from the static deployment copy manifest. Local development rendered them from the source tree, while the published build returned no portrait asset for Tang Ning, Su Qing, or Lin Xia on both dialogue and inquiry screens.
+- Fix: added both semantic frames for all three witnesses to `scripts/copy-static-assets.mjs` and rebuilt the static deployment.
+
+### Verification
+
+- The production build now contains `tang-ning-dialogue-neutral-v4.webp`, `tang-ning-dialogue-anxious-v4.webp`, `su-qing-dialogue-neutral-v4.webp`, `su-qing-dialogue-guarded-v4.webp`, `lin-xia-dialogue-neutral-v4.webp`, and `lin-xia-dialogue-troubled-v4.webp` under `dist/assets/characters/`.
+- Portrait CSS, scale, crop, topic layout, expression switching, typography, colors, and copy are unchanged from the previously passed visual comparison.
+- The corrected package is ready for public deployment verification.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Tang Ning scale correction
 
 ### Source visual truth
