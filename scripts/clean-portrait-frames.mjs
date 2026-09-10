@@ -42,8 +42,35 @@ for (const file of files) {
   }
 
   const largest = sizes.reduce((best, count, index) => count > sizes[best] ? index : best, 0);
+  let keep = new Uint8Array(size);
   for (let point = 0; point < size; point += 1) {
-    if (labels[point] && labels[point] !== largest) data[point * channels + 3] = 0;
+    if (labels[point] === largest) keep[point] = 1;
+  }
+
+  // Preserve the main cutout's antialiased fringe, but discard low-alpha
+  // remnants from neighbouring sprite cells. The old pass removed only opaque
+  // secondary components, leaving faint vertical seams after scaling.
+  for (let pass = 0; pass < 4; pass += 1) {
+    const grown = keep.slice();
+    for (let point = 0; point < size; point += 1) {
+      if (!keep[point]) continue;
+      const x = point % width;
+      const y = Math.floor(point / width);
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+          const next = ny * width + nx;
+          if (data[next * channels + 3] > 0) grown[next] = 1;
+        }
+      }
+    }
+    keep = grown;
+  }
+
+  for (let point = 0; point < size; point += 1) {
+    if (!keep[point]) data[point * channels + 3] = 0;
   }
 
   if (file.includes("jiang-yue-expression-1")) {

@@ -309,13 +309,10 @@ function showSpeakerPortrait(speaker, text = "", requestedExpression) {
   if (state.activePortrait === portraitKey && layer.firstElementChild) return;
   state.activePortrait = portraitKey;
   const expressionAsset = character.frames?.[expression];
-  const usesExpressionOverlay = expression > 0 && character.frames?.[0] && expressionAsset;
-  const portraitAsset = usesExpressionOverlay ? character.frames[0] : expressionAsset || character.expressions;
+  const portraitAsset = expressionAsset || character.frames?.[0] || character.expressions;
   const frameClass = character.frames ? " portrait-frame" : "";
-  const overlayClass = usesExpressionOverlay ? " portrait-expression-overlay" : "";
   const expressionLabel = character.expressionLabels?.[expression] || `expression-${expression}`;
-  const overlayStyle = usesExpressionOverlay ? `;--portrait-expression:url('${expressionAsset}')` : "";
-  layer.innerHTML = `<div class="speaker-portrait${frameClass}${overlayClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}" data-expression="${expressionLabel}" style="--portrait-sheet:url('${portraitAsset}')${overlayStyle}"></div>`;
+  layer.innerHTML = `<div class="speaker-portrait${frameClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}" data-expression="${expressionLabel}" style="--portrait-sheet:url('${portraitAsset}')"></div>`;
 }
 
 function clearTyping() {
@@ -690,7 +687,7 @@ function openWitness(key) {
   state.witnessesStarted.add(key);
   resetPanels();
   setHud(`询问${witness.name}`, "第一轮", true);
-  setStage("scene scene-transition", backgrounds.waiting);
+  setStage("scene", backgrounds.waiting);
   runDialogue(witness.intro, () => renderWitnessHub(key));
 }
 
@@ -703,7 +700,6 @@ function renderWitnessHub(key) {
   setStage("topic witness-topic", backgrounds.waiting, `
     <div class="topic-focus"></div>
     <div class="topic-person witness-person witness-${key}" style="--portrait-sheet:url('${character.frames[0]}')" aria-label="${witness.name}"></div>
-    <div class="witness-identity"><strong>${witness.name}</strong><span>${witness.role} · ${witness.relation}</span></div>
     <div class="topic-connectors" aria-hidden="true">
       <i class="connector connector-1"></i><i class="connector connector-2"></i>
       <i class="connector connector-3"></i><i class="connector connector-4"></i>

@@ -65,14 +65,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .portrait-xu, .portrait-jiang { --portrait-flip: -1; }
 .portrait-frame { background-position: center bottom !important; background-size: contain; }
 .portrait-qin { bottom: 14vh; width: 49vh; height: 73.5vh; }
-.portrait-tang, .portrait-su, .portrait-lin { top: var(--portrait-top); bottom: auto; width: 84vh; height: 92vh; background-position: center top !important; background-size: auto var(--portrait-scale) !important; }
-.portrait-expression-overlay::after { content: ""; position: absolute; inset: 0; background-image: var(--portrait-expression); background-position: center top; background-repeat: no-repeat; background-size: auto var(--portrait-scale); pointer-events: none; }
-.portrait-tang.portrait-expression-overlay::after { -webkit-mask-image: radial-gradient(ellipse 6.5vh 8.5vh at 50% 22vh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); mask-image: radial-gradient(ellipse 6.5vh 8.5vh at 50% 22vh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); }
-.portrait-su.portrait-expression-overlay::after { -webkit-mask-image: radial-gradient(ellipse 6.5vh 8.5vh at 50% 21vh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); mask-image: radial-gradient(ellipse 6.5vh 8.5vh at 50% 21vh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); }
-.portrait-lin.portrait-expression-overlay::after { -webkit-mask-image: radial-gradient(ellipse 6.5vh 8.5vh at 50% 25vh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); mask-image: radial-gradient(ellipse 6.5vh 8.5vh at 50% 25vh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); }
-.portrait-tang { --portrait-scale: 225vh; --portrait-top: 8vh; }
-.portrait-su { --portrait-scale: 218vh; --portrait-top: 10vh; }
-.portrait-lin { --portrait-scale: 222vh; --portrait-top: 9vh; }
+.portrait-tang, .portrait-su, .portrait-lin { top: auto; background-position: center bottom !important; background-size: contain !important; }
+.portrait-tang { bottom: -18vh; width: 72vh; height: 108vh; }
+.portrait-lin { bottom: 3vh; width: 47.5vh; height: 84vh; }
+.portrait-su { bottom: 6.5vh; width: 53.5vh; height: 80vh; }
 .expression-0 { background-position: 0% center; }
 .expression-1 { background-position: 50% center; }
 .expression-2 { background-position: 100% center; }
@@ -130,13 +126,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .connector-4::after { left: -4px; top: -4px; }
 .finish-button { position: absolute; z-index: 9; left: 50%; bottom: 22px; min-width: 228px; min-height: 50px; transform: translateX(-50%); border: 1px solid rgba(255,255,255,.75); border-radius: 3px; color: #fff; background: rgba(24,63,54,.94); box-shadow: var(--soft-shadow); cursor: pointer; }
 .finish-button:disabled { color: rgba(45,57,53,.46); border-color: rgba(39,62,55,.18); background: rgba(243,242,237,.8); box-shadow: none; cursor: not-allowed; }
-.witness-person { width: min(84vw, 860px); height: 78vh; aspect-ratio: auto; background-position: center top; background-size: auto var(--topic-portrait-scale); }
-.witness-tang { --topic-portrait-scale: 205vh; bottom: 7vh; }
-.witness-su { --topic-portrait-scale: 198vh; bottom: 8.5vh; }
-.witness-lin { --topic-portrait-scale: 202vh; bottom: 7.5vh; }
-.witness-identity { position: absolute; z-index: 8; left: 50%; top: 14%; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); color: #fff; text-align: center; text-shadow: 0 3px 15px rgba(7,20,16,.78); }
-.witness-identity strong { font: 560 30px "Noto Serif SC", "Songti SC", serif; letter-spacing: .08em; }
-.witness-identity span { margin-top: 5px; color: rgba(255,255,255,.76); font-size: 12px; letter-spacing: .08em; }
+.witness-person { background-position: center bottom; background-size: contain; }
 
 /* Investigation */
 .stage-search-intro::before { content: ""; position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg, rgba(10,28,24,.62), rgba(10,28,24,.08) 55%, transparent); }
@@ -264,14 +254,9 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .portrait-jiang { bottom: -2vh; width: 39vh; }
   .portrait-xu { bottom: -5vh; width: 44vh; height: 86vh; }
   .portrait-qin { bottom: 12vh; width: 42vh; height: 63vh; }
-  .portrait-tang, .portrait-su, .portrait-lin { top: var(--portrait-top-mobile); bottom: auto; width: min(100vw, 430px); height: calc(100dvh - 210px); background-size: auto var(--portrait-scale-mobile) !important; }
-  .portrait-expression-overlay::after { background-size: auto var(--portrait-scale-mobile); }
-  .portrait-tang.portrait-expression-overlay::after { -webkit-mask-image: radial-gradient(ellipse 4.5dvh 6dvh at 50% 15dvh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); mask-image: radial-gradient(ellipse 4.5dvh 6dvh at 50% 15dvh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); }
-  .portrait-su.portrait-expression-overlay::after { -webkit-mask-image: radial-gradient(ellipse 4.5dvh 6dvh at 50% 14.5dvh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); mask-image: radial-gradient(ellipse 4.5dvh 6dvh at 50% 14.5dvh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); }
-  .portrait-lin.portrait-expression-overlay::after { -webkit-mask-image: radial-gradient(ellipse 4.5dvh 6dvh at 50% 17dvh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); mask-image: radial-gradient(ellipse 4.5dvh 6dvh at 50% 17dvh, #000 0 52%, rgba(0,0,0,.82) 68%, transparent 100%); }
-  .portrait-tang { --portrait-scale-mobile: 143dvh; --portrait-top-mobile: 68px; }
-  .portrait-su { --portrait-scale-mobile: 138dvh; --portrait-top-mobile: 78px; }
-  .portrait-lin { --portrait-scale-mobile: 141dvh; --portrait-top-mobile: 72px; }
+  .portrait-tang { bottom: -2dvh; width: 62dvh; height: 93dvh; }
+  .portrait-lin { bottom: 10dvh; width: 45dvh; height: 80dvh; }
+  .portrait-su { bottom: 17dvh; width: 47dvh; height: 70dvh; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }
   .dialogue { bottom: 14px; width: calc(100% - 28px); min-height: 205px; padding: 51px 24px 36px; }
@@ -312,13 +297,7 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .stage-topic { background-position: 58% center; }
   .stage-topic::after { background: linear-gradient(180deg, transparent 0 51%, rgba(15,27,24,.2) 64%, rgba(15,27,24,.5) 100%); }
   .topic-person { top: 68px; bottom: auto; width: min(78vw, 320px); height: auto; aspect-ratio: 2 / 3; }
-  .witness-person { top: 74px; width: min(100vw, 430px); height: calc(100dvh - 292px); min-height: 330px; aspect-ratio: auto; background-position: center top; background-size: auto var(--topic-portrait-scale-mobile); }
-  .witness-tang { --topic-portrait-scale-mobile: 130dvh; }
-  .witness-su { --topic-portrait-scale-mobile: 125dvh; }
-  .witness-lin { --topic-portrait-scale-mobile: 128dvh; }
-  .witness-identity { top: 76px; left: 14px; align-items: flex-start; transform: none; text-align: left; }
-  .witness-identity strong { font-size: 22px; }
-  .witness-identity span { max-width: 100px; font-size: 10px; line-height: 1.5; }
+  .witness-person { top: 68px; width: min(78vw, 320px); height: auto; aspect-ratio: 2 / 3; background-position: center bottom; background-size: contain; }
   .topic-list { inset: auto 12px 72px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; padding: 11px; border: 1px solid rgba(255,255,255,.6); border-radius: 5px; background: rgba(247,245,239,.94); box-shadow: 0 14px 34px rgba(10,24,20,.28); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
   .topic-list-label { display: flex; grid-column: 1 / -1; align-items: center; gap: 8px; margin: 0 2px 1px; color: #65716d; font-size: 11px; letter-spacing: .08em; }
   .topic-list-label::before { content: ""; width: 18px; height: 1px; background: var(--green-2); }

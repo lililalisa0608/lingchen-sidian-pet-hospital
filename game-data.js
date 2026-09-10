@@ -99,8 +99,8 @@ const GAME_DATA = {
       id: "tang",
       name: "唐宁",
       frames: [
-        "/assets/characters/tang-ning-card-v1.png",
-        "/assets/characters/tang-ning-anxious-v2.png",
+        "/assets/characters/tang-ning-dialogue-neutral-v4.webp",
+        "/assets/characters/tang-ning-dialogue-anxious-v4.webp",
       ],
       expressionLabels: ["neutral", "anxious"],
       side: "right",
@@ -109,8 +109,8 @@ const GAME_DATA = {
       id: "su",
       name: "苏青",
       frames: [
-        "/assets/characters/su-qing-card-v1.png",
-        "/assets/characters/su-qing-guarded-v2.png",
+        "/assets/characters/su-qing-dialogue-neutral-v4.webp",
+        "/assets/characters/su-qing-dialogue-guarded-v4.webp",
       ],
       expressionLabels: ["neutral", "guarded"],
       side: "right",
@@ -119,8 +119,8 @@ const GAME_DATA = {
       id: "lin",
       name: "林夏",
       frames: [
-        "/assets/characters/lin-xia-card-v1.png",
-        "/assets/characters/lin-xia-troubled-v2.png",
+        "/assets/characters/lin-xia-dialogue-neutral-v4.webp",
+        "/assets/characters/lin-xia-dialogue-troubled-v4.webp",
       ],
       expressionLabels: ["neutral", "troubled"],
       side: "right",
