@@ -72,6 +72,32 @@ final result: passed
 
 ---
 
+## Mobile Tang Ning scale and protagonist balance pass
+
+### Finding
+
+- At 393 × 852, Tang Ning's face remained about one visual tier smaller than Jiang Yue's and the asymmetric transparent source canvas made him read left of the right-side dialogue baseline.
+- Xu Zhiheng's mobile portrait read slightly too massive beside the rest of the cast because both his head and dark-jacket shoulder silhouette were enlarged together.
+
+### Implemented correction
+
+- Enlarged Tang Ning's mobile dialogue frame proportionally, lowered its bottom anchor so the crown stays between Xu Zhiheng and Jiang Yue, and compensated the right anchor for the source-canvas face offset.
+- Reduced Xu Zhiheng's mobile frame slightly while preserving his position as the tallest character and keeping his face within the established same-viewport tolerance.
+- Desktop dialogue, both Tang Ning expressions, and the inquiry layout remain unchanged.
+
+### Verification
+
+- Same-viewport mobile captures: `qa/qa-mobile-xu-adjusted.png`, `qa/qa-mobile-jiang-current.png`, `qa/qa-mobile-tang-adjusted.png`, and `qa/qa-mobile-tang-adjusted-anxious.png`.
+- Desktop neutral/alternate dialogue and desktop/mobile inquiry screens were rechecked with the same active CSS and source assets.
+- The portrait aspect ratios, transparency, dialogue-panel overlap, expression alignment, and crown-height order all pass.
+- Production build and whitespace checks pass.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Scene-wide dialogue advance pass
 
 ### Finding

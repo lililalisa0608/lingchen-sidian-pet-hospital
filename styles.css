@@ -254,17 +254,20 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .sound-state { left: 26px; }
   .speaker-portrait { bottom: -4vh; height: 80vh; opacity: 1; }
   .portrait-jiang { bottom: -2vh; width: 39vh; }
-  .portrait-xu { bottom: -5vh; width: 44vh; height: 86vh; }
+  .portrait-xu { bottom: -1.7dvh; width: 41dvh; height: 82dvh; }
   .portrait-qin { bottom: 12vh; width: 42vh; height: 63vh; }
   /* Witnesses reuse Qin Zhao's right-side mobile portrait template. Their
      small bottom offsets express height without changing apparent head size. */
-  .portrait-tang, .portrait-lin { width: 48dvh; height: 72dvh; }
-  .portrait-tang { bottom: 8dvh; }
+  .portrait-tang { bottom: -1.25dvh; width: 52.5dvh; height: 78.75dvh; }
+  .portrait-lin { width: 48dvh; height: 72dvh; }
   .portrait-lin { bottom: 1.5dvh; }
   .portrait-su { bottom: 5dvh; width: 46.7dvh; height: 70dvh; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }
-  .portrait-tang.portrait-right { right: -4%; }
+  /* Tang's face sits left of center inside his wider source canvas. As the
+     frame grows, compensate at the right edge so his visible face—not the
+     transparent bitmap box—aligns with Jiang Yue. */
+  .portrait-tang.portrait-right { right: -12%; }
   .dialogue { bottom: 14px; width: calc(100% - 28px); min-height: 205px; padding: 51px 24px 36px; }
   .speaker { left: 17px; top: -28px; min-width: 190px; padding: 12px 20px; font-size: 16px; }
   .dialogue-text { font-size: 17px; line-height: 1.66; }
