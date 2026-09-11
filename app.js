@@ -35,6 +35,8 @@ const backgrounds = {
   waitingCast: "/assets/backgrounds/waiting-area-cast-v2.png",
   corridor: "/assets/backgrounds/second-consultation-corridor-v1.png",
   clinic: "/assets/backgrounds/second-consultation-evidence-v4.png",
+  consultationClean: "/assets/backgrounds/second-consultation-clean-v1.png",
+  isolation: "/assets/backgrounds/isolation-room-v1.png",
 };
 
 // Warm the browser cache so a scene swap never exposes the stage fallback color.
@@ -82,6 +84,10 @@ const state = {
   witnessesStarted: new Set(),
   witnessesDone: new Set(),
   searchFound: new Set(),
+  isolationSearchFound: new Set(),
+  secondLinTopicsDone: new Set(),
+  testimonyPressed: new Set(),
+  selectedTestimony: 0,
   dialogueQueue: [],
   dialogueDone: null,
   dialogueHistory: [],
@@ -96,6 +102,7 @@ const state = {
   interactionScroll: {
     search: null,
     suspects: null,
+    isolation: null,
   },
 };
 
@@ -429,6 +436,13 @@ function showChoices(items) {
 
 function getEvidenceItem(key) {
   const item = data.evidence[key];
+  if (key === "reports" && state.facts.has("blood-analysis")) {
+    return {
+      ...item,
+      description: "下层为奶糖的检验报告，于03:36自动打印，正面沾有贺川在器械架前遭受撞击时留下的血；上层为旺旺的血液检查报告，于03:46自动打印，正面干净，背面留有从下层接触转印的贺川血迹。上层报告落下时，下层的血尚未干。",
+      updated: true,
+    };
+  }
   if (key !== "injury" || !state.facts.has("death-time")) return item;
   return {
     ...item,
@@ -499,8 +513,13 @@ function startOpening() {
   state.witnessesStarted.clear();
   state.witnessesDone.clear();
   state.searchFound.clear();
+  state.isolationSearchFound.clear();
+  state.secondLinTopicsDone.clear();
+  state.testimonyPressed.clear();
+  state.selectedTestimony = 0;
   state.interactionScroll.search = null;
   state.interactionScroll.suspects = null;
+  state.interactionScroll.isolation = null;
   state.dialogueHistory = [];
   updateEvidenceCount();
   resetPanels();
@@ -790,7 +809,285 @@ function renderChapterEnd() {
       <p>第一轮询问完成</p>
       <h1>下一地点：隔离间</h1>
       <span>三人的陈述已记入对话记录。接下来，需要检查旺旺曾经接受治疗的隔离间。</span>
-      <button id="restart-game" class="primary-button" type="button">重新体验本章 <i class="ph ph-arrow-counter-clockwise"></i></button>
+      <button id="enter-isolation" class="primary-button" type="button">前往隔离间 <i class="ph ph-arrow-right"></i></button>
+    </section>`);
+  document.querySelector("#enter-isolation").addEventListener("click", renderIsolationArrival);
+}
+
+function renderIsolationArrival() {
+  resetPanels();
+  setHud("隔离间", "05:26", true);
+  setStage("scene scene-transition", backgrounds.isolation);
+  audio.door();
+  runDialogue(data.isolationArrival, renderIsolationSearch);
+}
+
+function renderIsolationSearch() {
+  resetPanels();
+  const requiredFound = state.isolationSearchFound.size;
+  setHud("隔离间", requiredFound === 4 ? "关键证物已齐" : `调查 ${requiredFound}/4`, true);
+  setStage("search interaction-stage isolation-search", backgrounds.isolation, `
+    <div id="interaction-scroll" class="interaction-scroll">
+      <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.isolation}')">
+        <div id="hotspots" class="hotspots" aria-label="隔离间可调查区域"></div>
+      </div>
+    </div>
+    <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击可疑位置</span></p>
+    <button id="leave-isolation" class="leave-button" type="button" ${requiredFound < 4 ? "disabled" : ""}>完成调查</button>`);
+
+  setupInteractionScroll("isolation");
+  const spots = document.querySelector("#hotspots");
+  spots.addEventListener("pointermove", () => spots.classList.add("armed"), { once: true });
+  Object.entries(data.isolationSearchSpots).forEach(([key, spot]) => {
+    if (state.isolationSearchFound.has(key)) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `hotspot ${spot.className}`;
+    button.setAttribute("aria-label", `调查${spot.label}`);
+    button.innerHTML = `<span>调查 · ${spot.label}</span>`;
+    button.addEventListener("click", () => inspectIsolationSpot(key, spot));
+    spots.append(button);
+  });
+  document.querySelector("#leave-isolation").addEventListener("click", () => {
+    if (state.isolationSearchFound.size < 4) return;
+    resetPanels();
+    setHud("隔离间门外", "05:38", true);
+    setStage("scene scene-transition", backgrounds.corridor);
+    runDialogue(data.isolationSearchEnding, renderSecondLinHub);
+  });
+}
+
+function inspectIsolationSpot(key, spot) {
+  runDialogue(spot.lines, () => {
+    state.isolationSearchFound.add(key);
+    addEvidence(spot.evidence, renderIsolationSearch);
+  });
+}
+
+function renderSecondLinHub() {
+  resetPanels();
+  const completed = state.secondLinTopicsDone;
+  setHud("再次询问林夏", `${completed.size}/${data.secondLinTopics.length}`, true);
+  setStage("topic witness-topic", backgrounds.corridor, `
+    <div class="topic-focus"></div>
+    <div class="topic-person witness-person witness-lin" style="--portrait-sheet:url('${data.characters.lin.frames[0]}')" aria-label="林夏"></div>
+    <div class="topic-connectors" aria-hidden="true">
+      <i class="connector connector-1"></i><i class="connector connector-2"></i>
+      <i class="connector connector-3"></i><i class="connector connector-4"></i>
+    </div>
+    <div id="topic-list" class="topic-list" aria-label="再次询问话题"><p class="topic-list-label">选择询问话题</p></div>
+    <button id="finish-second-lin" class="finish-button" type="button" ${completed.size < data.secondLinTopics.length ? "disabled" : ""}>结束询问</button>`);
+
+  const list = document.querySelector("#topic-list");
+  data.secondLinTopics.forEach((topic, index) => {
+    const complete = completed.has(topic.id);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `topic-button topic-${index + 1}${complete ? " complete" : ""}`;
+    button.innerHTML = `<span>${topic.label}</span><i class="ph ${complete ? "ph-check" : "ph-plus"}"></i>`;
+    button.addEventListener("click", () => {
+      resetPanels();
+      setHud("再次询问林夏", topic.label, true);
+      setStage("scene", backgrounds.corridor);
+      runDialogue(topic.lines, () => {
+        const wasComplete = completed.has(topic.id);
+        completed.add(topic.id);
+        if (!wasComplete) audio.cue();
+        renderSecondLinHub();
+      });
+    });
+    list.append(button);
+  });
+
+  document.querySelector("#finish-second-lin").addEventListener("click", () => {
+    if (completed.size < data.secondLinTopics.length) return;
+    resetPanels();
+    setHud("隔离间门外", "05:47", true);
+    setStage("scene", backgrounds.corridor);
+    runDialogue(data.secondLinEnding, renderBloodAnalysis);
+  });
+}
+
+function renderBloodAnalysis() {
+  setHud("血迹鉴定", "秦昭来电", true);
+  runDialogue(data.bloodAnalysis, () => {
+    state.facts.add("blood-analysis");
+    showToast("《叠放的两份报告》已补充血迹鉴定");
+    renderTangConfrontation();
+  });
+}
+
+function renderTangConfrontation() {
+  resetPanels();
+  setHud("对质唐宁", "消失的两分钟", true);
+  setStage("scene scene-transition", backgrounds.consultationClean);
+  runDialogue(data.tangConfrontIntro, renderTangTestimony);
+}
+
+function renderTangTestimony() {
+  resetPanels();
+  setHud("对质唐宁", "选择证言追问或出示证物", true);
+  setStage("testimony", backgrounds.consultationClean, `
+    <div class="testimony-scrim"></div>
+    <section class="testimony-panel">
+      <header><p>唐宁的证言</p><h1>案发时的行动</h1><span>点击任一句追问；选中矛盾证言后出示证物。</span></header>
+      <div class="testimony-list">
+        ${data.tangTestimony.map((statement, index) => `
+          <button class="testimony-statement${state.selectedTestimony === index ? " selected" : ""}${state.testimonyPressed.has(index) ? " pressed" : ""}" data-statement="${index}" type="button">
+            <b>${String(index + 1).padStart(2, "0")}</b><span>${statement.text}</span><em>${state.testimonyPressed.has(index) ? "已追问" : "追问"}</em>
+          </button>`).join("")}
+      </div>
+      <div class="testimony-actions">
+        <span>当前选择：证言 ${state.selectedTestimony + 1}</span>
+        <button id="present-testimony" class="primary-button" type="button"><i class="ph ph-briefcase"></i> 出示证物</button>
+      </div>
+    </section>`);
+
+  document.querySelectorAll("[data-statement]").forEach((button) => button.addEventListener("click", () => {
+    const index = Number(button.dataset.statement);
+    state.selectedTestimony = index;
+    state.testimonyPressed.add(index);
+    setStage("scene", backgrounds.consultationClean);
+    runDialogue(data.tangTestimony[index].press, renderTangTestimony);
+  }));
+  document.querySelector("#present-testimony").addEventListener("click", presentAgainstTestimony);
+}
+
+function presentAgainstTestimony() {
+  askEvidence(
+    "哪件证物与这句证言矛盾？",
+    "usedSupplies",
+    () => {
+      if (state.selectedTestimony !== 2) {
+        runDialogue([["许知衡（心声）", "这件证物与当前证言还不能构成直接矛盾。先证明唐宁并不只是在等审批结果。"]], renderTangTestimony);
+        return;
+      }
+      setStage("scene", backgrounds.consultationClean);
+      runDialogue(data.treatmentContradiction, askWhoUsedSupplies);
+    },
+    "这件证物还不能证明唐宁没有等待审批。",
+    renderTangTestimony,
+  );
+}
+
+function askWhoUsedSupplies() {
+  askEvidence(
+    "是谁使用了这些治疗用品？",
+    "isolationVideo",
+    () => {
+      setStage("scene", backgrounds.consultationClean);
+      runDialogue(data.treatmentVideoReveal, revealCommunicationRecord);
+    },
+    "需要能够直接看到隔离间内发生了什么的证物。",
+  );
+}
+
+function revealCommunicationRecord() {
+  setHud("对质唐宁", "03:42的语音", true);
+  runDialogue(data.communicationReveal, () => addEvidence("communication", () => {
+    setStage("scene", backgrounds.consultationClean);
+    runDialogue(data.communicationChallenge, renderVoiceDeductionChoices);
+  }));
+}
+
+function renderVoiceDeductionChoices() {
+  setHud("推理", "排除语音提前录制", true);
+  showChoices([
+    {
+      label: "贺川在语音里准确提到了温度。",
+      action: () => {
+        els.choices.classList.add("hidden");
+        runDialogue(data.voiceDeduction, askFatalTimeEvidence);
+      },
+    },
+    {
+      label: "贺川的语气听起来很自然。",
+      action: wrongVoiceDeduction,
+    },
+    {
+      label: "语音发送时间处于明确死亡时间范围外。",
+      action: wrongVoiceDeduction,
+    },
+  ]);
+}
+
+function wrongVoiceDeduction() {
+  els.choices.classList.add("hidden");
+  runDialogue([["许知衡", "好像不太对……"]], renderVoiceDeductionChoices);
+}
+
+function askFatalTimeEvidence() {
+  askEvidence(
+    "哪件证物能够证明致命撞击不可能发生在03:49以后？",
+    "reports",
+    () => {
+      setStage("scene", backgrounds.consultationClean);
+      runDialogue(data.reportTimelineReveal, askAlibiEvidence);
+    },
+    "需要找到一个不依赖任何人证言的时间标记。",
+  );
+}
+
+function askAlibiEvidence() {
+  askEvidence(
+    "03:42—03:46之间，唐宁和林夏在哪里？",
+    "isolationVideo",
+    () => {
+      setStage("scene", backgrounds.consultationClean);
+      runDialogue(data.alibiReveal, renderSecondRoundEnding);
+    },
+    "需要同时确认两个人在这四分钟里的位置。",
+  );
+}
+
+function askEvidence(question, correctKey, onCorrect, wrongHint, onCancel) {
+  const keys = [...state.evidence];
+  els.overlay.innerHTML = `
+    <section class="evidence-select-panel" aria-label="选择证物">
+      <header><small>出示证物</small><h2>${question}</h2></header>
+      <div class="evidence-select-grid">
+        ${keys.map((key) => {
+          const item = getEvidenceItem(key);
+          return `<button data-present-evidence="${key}" type="button"><img src="${item.image}" alt=""><span><small>${item.id}</small>${item.name}</span></button>`;
+        }).join("")}
+      </div>
+      ${onCancel ? '<button id="cancel-present" class="evidence-cancel" type="button">返回证言</button>' : ""}
+    </section>`;
+  els.overlay.classList.remove("hidden");
+  document.querySelectorAll("[data-present-evidence]").forEach((button) => button.addEventListener("click", () => {
+    const selected = button.dataset.presentEvidence;
+    els.overlay.classList.add("hidden");
+    els.overlay.innerHTML = "";
+    if (selected === correctKey) {
+      audio.cue("evidence");
+      onCorrect();
+      return;
+    }
+    runDialogue([["许知衡（心声）", wrongHint]], () => askEvidence(question, correctKey, onCorrect, wrongHint, onCancel));
+  }));
+  document.querySelector("#cancel-present")?.addEventListener("click", () => {
+    els.overlay.classList.add("hidden");
+    els.overlay.innerHTML = "";
+    onCancel();
+  });
+}
+
+function renderSecondRoundEnding() {
+  resetPanels();
+  setHud("第二轮调查", "真相第一次收束", true);
+  setStage("scene scene-transition", backgrounds.waitingCast);
+  runDialogue(data.secondRoundEnding, renderSecondRoundEndCard);
+}
+
+function renderSecondRoundEndCard() {
+  resetPanels();
+  setHud("第三轮调查", "等候区已开放", true);
+  setStage("search-intro chapter-end", backgrounds.waitingCast, `
+    <section class="search-briefing chapter-end-copy">
+      <p>第二轮结束</p>
+      <h1>真正的作案时间</h1>
+      <span>贺川在03:42仍然活着；致命撞击发生于03:42—03:46。唐宁和林夏在这四分钟里始终出现在隔离间录像中。</span>
+      <button id="restart-game" class="primary-button" type="button">重新体验 <i class="ph ph-arrow-counter-clockwise"></i></button>
     </section>`);
   document.querySelector("#restart-game").addEventListener("click", startOpening);
 }

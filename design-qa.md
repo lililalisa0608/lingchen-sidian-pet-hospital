@@ -72,6 +72,35 @@ final result: passed
 
 ---
 
+## Playable script 02 implementation pass
+
+### Added surfaces
+
+- Isolation-room 16:9 investigation with four required hotspots and four new evidence reveals.
+- Lin Xia second-round inquiry using the approved witness topic template.
+- Tang Ning testimony navigation, per-statement questioning, evidence presentation, wrong-answer recovery, inference choice, and the 03:42—03:46 timeline conclusion.
+- Updated report evidence and the new 03:42 communication record, bringing the evidence book to nine items.
+
+### Browser verification
+
+- Desktop viewport: 1280 × 720 CSS px. Completed the full playable flow from cover through the second-round ending.
+- Mobile viewport: 393 × 852 CSS px. Repeated the full flow and verified the horizontally panned isolation scene at both left/center and right-side targets.
+- Desktop and mobile both verified: four isolation hotspots, leave gating, all four second-round Lin topics, all four testimony statements, evidence selector, wrong inference returning to the same question, two-stage contradiction evidence, and final chapter transition.
+- Mobile-specific checks passed for the 985px-wide interaction canvas inside the 393px scroller, saved horizontal position, topic grid, vertically scrollable testimony statements, and vertically scrollable nine-item evidence selector.
+- Browser console warnings/errors: none.
+- Production build and static-asset copy: passed.
+
+### Findings
+
+- No remaining actionable P0 or P1 findings.
+- Mobile report-update toast was moved below the HUD so it no longer obscures the testimony heading.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Mobile Tang Ning scale and protagonist balance pass
 
 ### Finding
