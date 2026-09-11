@@ -72,6 +72,33 @@ final result: passed
 
 ---
 
+## Scene-wide dialogue advance pass
+
+### Finding
+
+- Dialogue progression previously depended on clicking the dialogue panel, which made the otherwise open stage feel non-interactive and was especially awkward on mobile.
+- A full-stage tap target needed to coexist with mobile swiping and with HUD, modal, choice, and hotspot interactions without accidental progression.
+
+### Implemented correction
+
+- Added an independent pointer gesture to the game stage while dialogue is active: a primary-button tap on the non-interactive scene advances exactly one line.
+- Movement beyond 12 px is treated as a drag/swipe and does not advance dialogue.
+- Dialogue, HUD, modal, choice, form, link, and button surfaces are excluded from the stage gesture; their existing interactions remain unchanged.
+- Kept dialogue-panel clicking and the explicit advance control, and changed the visible desktop/mobile hint to “点击画面继续”.
+- Added the pointer cursor to the stage only while dialogue is active on pointer-based devices.
+
+### QA evidence
+
+- Desktop: background tap advanced exactly one line; dialogue-panel tap advanced exactly one line; opening and closing Settings did not advance dialogue.
+- Mobile viewport 393 × 852: background tap advanced exactly one line; a 185 px horizontal drag did not advance; dialogue-panel tap advanced exactly one line; the hint remained visible.
+- Production build and whitespace checks passed.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Mobile witness layout parity pass
 
 ### Finding

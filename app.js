@@ -99,6 +99,12 @@ const state = {
   },
 };
 
+const sceneAdvanceGesture = {
+  pointerId: null,
+  startX: 0,
+  startY: 0,
+};
+
 const audio = {
   context: null,
   gain: null,
@@ -245,6 +251,7 @@ function setStage(screen, background, markup = "") {
 function resetPanels() {
   clearTyping();
   els.dialogue.classList.add("hidden");
+  els.game.classList.remove("dialogue-active");
   els.choices.classList.add("hidden");
   els.overlay.classList.add("hidden");
   els.overlay.innerHTML = "";
@@ -344,6 +351,7 @@ function runDialogue(lines, done) {
   state.dialogueDone = done || null;
   els.choices.classList.add("hidden");
   els.dialogue.classList.remove("hidden");
+  els.game.classList.add("dialogue-active");
   nextDialogueLine();
 }
 
@@ -361,6 +369,7 @@ function nextDialogueLine() {
   const next = state.dialogueQueue.shift();
   if (!next) {
     els.dialogue.classList.add("hidden");
+    els.game.classList.remove("dialogue-active");
     showSpeakerPortrait("");
     const done = state.dialogueDone;
     state.dialogueDone = null;
@@ -374,6 +383,34 @@ function nextDialogueLine() {
   renderLineText(next.text);
   showSpeakerPortrait(next.speaker, next.text, next.expression);
   state.dialogueHistory.push(next);
+}
+
+function isSceneAdvanceTarget(target) {
+  if (!(target instanceof Element)) return false;
+  if (els.dialogue.classList.contains("hidden")) return false;
+  if (!els.modal.classList.contains("hidden") || !els.modalScrim.classList.contains("hidden")) return false;
+  return !target.closest("#dialogue, #hud, #choice-panel, #overlay, #modal, #modal-scrim, button, a, input, select, textarea, [role='button']");
+}
+
+function beginSceneAdvanceGesture(event) {
+  if (!event.isPrimary || event.button !== 0 || !isSceneAdvanceTarget(event.target)) return;
+  sceneAdvanceGesture.pointerId = event.pointerId;
+  sceneAdvanceGesture.startX = event.clientX;
+  sceneAdvanceGesture.startY = event.clientY;
+}
+
+function finishSceneAdvanceGesture(event) {
+  if (sceneAdvanceGesture.pointerId !== event.pointerId) return;
+  const distance = Math.hypot(
+    event.clientX - sceneAdvanceGesture.startX,
+    event.clientY - sceneAdvanceGesture.startY,
+  );
+  sceneAdvanceGesture.pointerId = null;
+  if (distance <= 12 && isSceneAdvanceTarget(event.target)) advanceDialogue();
+}
+
+function cancelSceneAdvanceGesture(event) {
+  if (sceneAdvanceGesture.pointerId === event.pointerId) sceneAdvanceGesture.pointerId = null;
 }
 
 function showChoices(items) {
@@ -862,6 +899,9 @@ function closeModal() {
 }
 
 els.game.dataset.font = state.fontSize;
+els.game.addEventListener("pointerdown", beginSceneAdvanceGesture);
+els.game.addEventListener("pointerup", finishSceneAdvanceGesture);
+els.game.addEventListener("pointercancel", cancelSceneAdvanceGesture);
 els.advance.addEventListener("click", advanceDialogue);
 els.dialogue.addEventListener("click", (event) => {
   if (!event.target.closest("button")) advanceDialogue();
