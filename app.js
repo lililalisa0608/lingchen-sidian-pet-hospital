@@ -113,12 +113,17 @@ const sceneAdvanceGesture = {
 };
 
 const audio = {
+  tracks: {
+    story: "/assets/audio/clean-soul.m4a",
+    testimony: "/assets/audio/unsolved-investigation.ogg",
+  },
+  currentTrack: "story",
   context: null,
   gain: null,
   bgm: null,
   init() {
     if (!this.bgm) {
-      this.bgm = new Audio("/assets/audio/clean-soul.m4a");
+      this.bgm = new Audio(this.tracks[this.currentTrack]);
       this.bgm.loop = true;
       this.bgm.preload = "auto";
     }
@@ -138,6 +143,20 @@ const audio = {
   startBgm() {
     if (!this.bgm) return;
     this.bgm.play().catch(() => {});
+  },
+  setTrack(track) {
+    if (!this.tracks[track] || track === this.currentTrack) {
+      this.startBgm();
+      return;
+    }
+    const shouldResume = Boolean(this.bgm && !this.bgm.paused);
+    this.bgm?.pause();
+    this.currentTrack = track;
+    this.bgm = new Audio(this.tracks[track]);
+    this.bgm.loop = true;
+    this.bgm.preload = "auto";
+    this.update();
+    if (shouldResume) this.startBgm();
   },
   update() {
     const value = state.muted ? 0 : state.volume / 100;
@@ -506,6 +525,7 @@ function renderStart() {
 }
 
 function startOpening() {
+  audio.setTrack("story");
   state.evidence.clear();
   state.facts.clear();
   state.qinDone.clear();
@@ -926,31 +946,66 @@ function renderTangConfrontation() {
 
 function renderTangTestimony() {
   resetPanels();
-  setHud("对质唐宁", "选择证言追问或出示证物", true);
+  audio.setTrack("testimony");
+  const index = state.selectedTestimony;
+  const statement = data.tangTestimony[index];
+  const isPressed = state.testimonyPressed.has(index);
+  const total = data.tangTestimony.length;
+  setHud("对质唐宁", "切换证言 · 追问 / 质疑", true);
   setStage("testimony", backgrounds.consultationClean, `
     <div class="testimony-scrim"></div>
-    <section class="testimony-panel">
-      <header><p>唐宁的证言</p><h1>案发时的行动</h1><span>点击任一句追问；选中矛盾证言后出示证物。</span></header>
-      <div class="testimony-list">
-        ${data.tangTestimony.map((statement, index) => `
-          <button class="testimony-statement${state.selectedTestimony === index ? " selected" : ""}${state.testimonyPressed.has(index) ? " pressed" : ""}" data-statement="${index}" type="button">
-            <b>${String(index + 1).padStart(2, "0")}</b><span>${statement.text}</span><em>${state.testimonyPressed.has(index) ? "已追问" : "追问"}</em>
-          </button>`).join("")}
+    <div class="speaker-portrait portrait-frame portrait-right portrait-tang testimony-character expression-1" style="--portrait-sheet:url('${data.characters.tang.frames[1]}')" aria-hidden="true"></div>
+    <section class="testimony-panel" aria-label="唐宁的证言">
+      <header class="testimony-heading">
+        <div>
+          <p><i class="ph ph-waveform"></i> TESTIMONY · 唐宁的证言</p>
+          <h1>案发时的行动</h1>
+        </div>
+        <div class="testimony-counter"><strong>${String(index + 1).padStart(2, "0")}</strong><span>/ ${String(total).padStart(2, "0")}</span></div>
+      </header>
+      <div class="testimony-track">
+        <button id="previous-testimony" class="testimony-nav" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
+        <article id="current-testimony" class="testimony-statement${isPressed ? " pressed" : ""}" tabindex="0">
+          <div class="testimony-statement-label"><span>STATEMENT ${String(index + 1).padStart(2, "0")}</span><em>${isPressed ? "已追问" : "尚未追问"}</em></div>
+          <blockquote>${statement.text}</blockquote>
+        </article>
+        <button id="next-testimony" class="testimony-nav" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
       </div>
-      <div class="testimony-actions">
-        <span>当前选择：证言 ${state.selectedTestimony + 1}</span>
-        <button id="present-testimony" class="primary-button" type="button"><i class="ph ph-briefcase"></i> 出示证物</button>
-      </div>
+      <div class="testimony-progress" aria-label="证言进度">${data.tangTestimony.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
+      <footer class="testimony-actions">
+        <p>切换前后证言，对当前这句话采取行动</p>
+        <div>
+          <button id="press-testimony" class="testimony-action press" type="button"><i class="ph ph-chat-circle-dots"></i><span><small>PRESS</small>追问</span></button>
+          <button id="challenge-testimony" class="testimony-action challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
+        </div>
+      </footer>
     </section>`);
 
-  document.querySelectorAll("[data-statement]").forEach((button) => button.addEventListener("click", () => {
-    const index = Number(button.dataset.statement);
-    state.selectedTestimony = index;
-    state.testimonyPressed.add(index);
+  const changeStatement = (offset) => {
+    state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
+    audio.cue();
+    renderTangTestimony();
+  };
+
+  document.querySelector("#previous-testimony").addEventListener("click", () => changeStatement(-1));
+  document.querySelector("#next-testimony").addEventListener("click", () => changeStatement(1));
+  document.querySelector("#press-testimony").addEventListener("click", () => {
+    state.testimonyPressed.add(state.selectedTestimony);
     setStage("scene", backgrounds.consultationClean);
-    runDialogue(data.tangTestimony[index].press, renderTangTestimony);
-  }));
-  document.querySelector("#present-testimony").addEventListener("click", presentAgainstTestimony);
+    runDialogue(statement.press, renderTangTestimony);
+  });
+  document.querySelector("#challenge-testimony").addEventListener("click", presentAgainstTestimony);
+
+  const card = document.querySelector("#current-testimony");
+  let startX = 0;
+  card.addEventListener("pointerdown", (event) => {
+    startX = event.clientX;
+    card.setPointerCapture?.(event.pointerId);
+  });
+  card.addEventListener("pointerup", (event) => {
+    const distance = event.clientX - startX;
+    if (Math.abs(distance) > 46) changeStatement(distance > 0 ? -1 : 1);
+  });
 }
 
 function presentAgainstTestimony() {
@@ -1074,6 +1129,7 @@ function askEvidence(question, correctKey, onCorrect, wrongHint, onCancel) {
 
 function renderSecondRoundEnding() {
   resetPanels();
+  audio.setTrack("story");
   setHud("第二轮调查", "真相第一次收束", true);
   setStage("scene scene-transition", backgrounds.waitingCast);
   runDialogue(data.secondRoundEnding, renderSecondRoundEndCard);
@@ -1215,6 +1271,16 @@ document.addEventListener("keydown", (event) => {
     advanceDialogue();
   }
   if (event.key === "Escape") closeModal();
+  if (els.stage.classList.contains("stage-testimony") && els.overlay.classList.contains("hidden") && els.modal.classList.contains("hidden")) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      document.querySelector("#previous-testimony")?.click();
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      document.querySelector("#next-testimony")?.click();
+    }
+  }
 });
 
 renderStart();

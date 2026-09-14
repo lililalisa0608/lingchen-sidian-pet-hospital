@@ -72,6 +72,62 @@ final result: passed
 
 ---
 
+## Sentence-by-sentence testimony confrontation pass — 2026-09-14
+
+### Source visual truth
+
+- Existing testimony-list state supplied by the user: `/var/folders/js/200hxcrs2nbcv8sx79j7l_740000gn/T/codex-clipboard-7d930442-3d5d-43e6-a39a-cc83363db106.png` (3420 × 1972 px).
+- Isolation-room text/image mismatch supplied by the user: `/var/folders/js/200hxcrs2nbcv8sx79j7l_740000gn/T/codex-clipboard-c0b03393-45e2-49e4-b79c-230c395726d3.png` (3420 × 1962 px).
+- The user's written direction is authoritative for the redesign: show one statement at a time, switch backward/forward, and let the player choose either 追问 or 质疑 on the current statement, with a distinct interface and BGM.
+
+### Implementation evidence
+
+- Browser-rendered PC capture: in-app browser session at `http://localhost:4173/?qa-testimony=1`, 1280 × 720 CSS px, device scale factor 1.
+- Browser-rendered mobile capture: same state at 393 × 852 CSS px, device scale factor 1.
+- The in-app browser capture API does not expose a persistent filesystem path; both rendered captures were opened and visually inspected in-session before the temporary QA entry was removed.
+- State: Tang Ning testimony, statement 1 initially selected; statement 2 pressed; statement 3 challenged with 《使用过的治疗用品》.
+
+### Full-view comparison evidence
+
+- The former four-row management panel is gone. Both viewports expose one current statement, explicit previous/next controls, current/total numbering, progress marks, and two separate actions.
+- PC keeps the established hospital background, paper card, restrained green palette, and calibrated Tang Ning portrait while giving the confrontation its own composition and low-saturation red challenge action.
+- Mobile preserves the portrait scale hierarchy, keeps Tang Ning's face above the statement card, and provides two 50 px-high action controls without page scrolling or viewport overflow.
+- The isolation narration now says “几个空笼位”, matching the several visible empty cages.
+
+### Focused region comparison evidence
+
+- Typography: display serif remains limited to the confrontation title and statement; labels/counters use compact sans/monospace hierarchy and remain legible at both viewports.
+- Spacing/layout: the PC statement card and arrows stay left of Tang Ning; the mobile card, 42 px arrow rails, progress marks, instruction, and action row remain separated with no overlap.
+- Colors/tokens: paper, deep green, and muted blue-green stay consistent with the game; muted brick red is reserved for the destructive-sounding “质疑” action and maintains white-text contrast.
+- Image quality: the existing high-resolution anxious Tang Ning frame is reused without stretching or changing the approved PC/mobile portrait geometry.
+- Copy/content: current sentence, `STATEMENT NN`, current/total count, “尚未追问/已追问”, and the two action labels all correspond to actual interactive state.
+- Icons: all visible controls use the installed Phosphor icon family; no placeholder icon or custom SVG was introduced.
+
+### Interactions and audio checked
+
+- Previous/next buttons loop through the four statements.
+- ArrowRight keyboard navigation moved from statement 1 through statements 2 and 3.
+- Pressing statement 2 entered its dialogue and returned with “已追问” preserved.
+- Challenging statement 3 opened the evidence selector; choosing 《使用过的治疗用品》 entered the correct contradiction dialogue.
+- The testimony track is included in the production asset manifest; entering testimony selects it without restarting it after every press, and the second-round ending restores the story track.
+- Browser console warnings/errors: none.
+
+### Comparison history
+
+- P1: the original list exposed all four statements and coupled statement selection with immediate pressing, so there was no deliberate sentence-by-sentence confrontation. Fixed with a single-statement carousel and separate 追问/质疑 actions; post-fix captures show the complete new interaction model on PC and mobile.
+- P2: the first mobile pass placed the title divider across Tang Ning's face and let his hair approach the HUD controls. Fixed by removing the mobile divider and lowering/shifting the portrait; the post-fix 393 × 852 capture shows a clear face, unobstructed controls, and intact card hierarchy.
+
+### Findings
+
+- No remaining actionable P0, P1, or P2 findings in the tested testimony flow.
+- P3 follow-up: a future chapter can add a brief one-time “证言开始” transition, but it is not needed for the current interaction to read clearly.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Playable script 02 implementation pass
 
 ### Added surfaces
