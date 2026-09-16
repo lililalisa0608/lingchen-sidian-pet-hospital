@@ -72,6 +72,17 @@ final result: passed
 
 ---
 
+## Testimony-entry blank-screen regression
+
+- Reproduced the reported post-transition state at the Tang Ning cross-examination boundary and hardened both Tang Ning and Su Qing testimony initialization.
+- Testimony indices now reset on entry and normalize before statement lookup; the dialogue shell renders before the portrait, so a portrait failure cannot leave an empty stage; a next-frame integrity check restores a missing testimony interface.
+- Verified the complete flow at 1280 × 720 and 393 × 852, including immediate entry and a delayed manual-style entry click.
+- Visual evidence: `qa/regression-tang-testimony-desktop.png` and `qa/regression-tang-testimony-mobile.png`.
+
+final result: passed
+
+---
+
 ## Complete third-act and ending pass
 
 ### Implemented scope

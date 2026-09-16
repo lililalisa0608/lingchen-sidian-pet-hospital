@@ -986,6 +986,8 @@ function renderBloodAnalysis() {
 
 function renderTangConfrontation() {
   resetPanels();
+  state.selectedTestimony = 0;
+  state.testimonyPressed.clear();
   setHud("对质唐宁", "消失的两分钟", true);
   setStage("scene scene-transition", backgrounds.consultationClean);
   runDialogue(data.tangConfrontIntro, renderTestimonyIntro);
@@ -1013,20 +1015,28 @@ function renderTestimonyIntro() {
     state.testimonyIntroTimer = null;
     renderTangTestimony();
   };
-  document.querySelector("#enter-testimony").addEventListener("click", enter);
+  document.querySelector("#enter-testimony").addEventListener("click", enter, { once: true });
   state.testimonyIntroTimer = window.setTimeout(enter, 1800);
 }
 
 function renderTangTestimony() {
   resetPanels();
   audio.setTrack("testimony");
-  const index = state.selectedTestimony;
-  const statement = data.tangTestimony[index];
+  const statements = Array.isArray(data.tangTestimony) ? data.tangTestimony : [];
+  const total = statements.length;
+  if (!total) {
+    setHud("对质唐宁", "证言读取失败", true);
+    setStage("scene", backgrounds.consultationClean);
+    runDialogue([["旁白", "证言暂时无法读取。请刷新页面后重新进入。"]], renderTangConfrontation);
+    return;
+  }
+  const requestedIndex = Number.isFinite(Number(state.selectedTestimony)) ? Number(state.selectedTestimony) : 0;
+  const index = ((requestedIndex % total) + total) % total;
+  state.selectedTestimony = index;
+  const statement = statements[index] || statements[0];
   const isPressed = state.testimonyPressed.has(index);
-  const total = data.tangTestimony.length;
   setHud("对质唐宁", "切换证言 · 追问 / 质疑", true);
   setStage("testimony-dialogue", backgrounds.consultationClean);
-  showSpeakerPortrait("唐宁", statement.text, 1);
   els.dialogue.classList.add("testimony-mode");
   els.dialogue.classList.remove("hidden", "narration");
   els.game.classList.add("dialogue-active");
@@ -1040,7 +1050,7 @@ function renderTangTestimony() {
     <div class="testimony-dialogue-tools" aria-label="证言操作">
       <div class="testimony-dialogue-nav">
         <button id="previous-testimony" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
-        <div class="testimony-dialogue-progress" aria-label="证言进度">${data.tangTestimony.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
+        <div class="testimony-dialogue-progress" aria-label="证言进度">${statements.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
         <button id="next-testimony" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
       </div>
       <div class="testimony-dialogue-actions">
@@ -1048,6 +1058,13 @@ function renderTangTestimony() {
         <button id="challenge-testimony" class="challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
       </div>
     </div>`);
+  showSpeakerPortrait("唐宁", statement.text, 1);
+
+  window.requestAnimationFrame(() => {
+    const testimonyStageIsActive = els.stage.classList.contains("stage-testimony-dialogue");
+    const interfaceIsMissing = els.dialogue.classList.contains("hidden") || !document.querySelector("#next-testimony");
+    if (testimonyStageIsActive && interfaceIsMissing) renderTangTestimony();
+  });
 
   const changeStatement = (offset) => {
     state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
@@ -1381,7 +1398,7 @@ function renderSuTestimonyIntro(title, detail, onEnter) {
     state.testimonyIntroTimer = null;
     onEnter();
   };
-  document.querySelector("#enter-su-testimony").addEventListener("click", enter);
+  document.querySelector("#enter-su-testimony").addEventListener("click", enter, { once: true });
   state.testimonyIntroTimer = window.setTimeout(enter, 1800);
 }
 
@@ -1394,13 +1411,21 @@ function openSuTestimony(statements, subtitle, onChallenge) {
 function renderSuTestimony(statements, subtitle, onChallenge) {
   resetPanels();
   audio.setTrack("testimony");
-  const index = state.selectedTestimony;
-  const statement = statements[index];
-  const total = statements.length;
+  const testimonyLines = Array.isArray(statements) ? statements : [];
+  const total = testimonyLines.length;
+  if (!total) {
+    setHud("对质苏青", "证言读取失败", true);
+    setStage("scene", backgrounds.waiting);
+    runDialogue([["旁白", "证言暂时无法读取。请刷新页面后重新进入。"]], renderSuFinalHub);
+    return;
+  }
+  const requestedIndex = Number.isFinite(Number(state.selectedTestimony)) ? Number(state.selectedTestimony) : 0;
+  const index = ((requestedIndex % total) + total) % total;
+  state.selectedTestimony = index;
+  const statement = testimonyLines[index] || testimonyLines[0];
   const isPressed = state.testimonyPressed.has(index);
   setHud("对质苏青", `${subtitle} · 切换证言 · 追问 / 质疑`, true);
   setStage("testimony-dialogue", backgrounds.waiting);
-  showSpeakerPortrait("苏青", statement.text, 1);
   els.dialogue.classList.add("testimony-mode");
   els.dialogue.classList.remove("hidden", "narration");
   els.game.classList.add("dialogue-active");
@@ -1414,7 +1439,7 @@ function renderSuTestimony(statements, subtitle, onChallenge) {
     <div class="testimony-dialogue-tools" aria-label="证言操作">
       <div class="testimony-dialogue-nav">
         <button id="previous-testimony" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
-        <div class="testimony-dialogue-progress" aria-label="证言进度">${statements.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
+        <div class="testimony-dialogue-progress" aria-label="证言进度">${testimonyLines.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
         <button id="next-testimony" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
       </div>
       <div class="testimony-dialogue-actions">
@@ -1422,6 +1447,13 @@ function renderSuTestimony(statements, subtitle, onChallenge) {
         <button id="challenge-testimony" class="challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
       </div>
     </div>`);
+  showSpeakerPortrait("苏青", statement.text, 1);
+
+  window.requestAnimationFrame(() => {
+    const testimonyStageIsActive = els.stage.classList.contains("stage-testimony-dialogue");
+    const interfaceIsMissing = els.dialogue.classList.contains("hidden") || !document.querySelector("#next-testimony");
+    if (testimonyStageIsActive && interfaceIsMissing) renderSuTestimony(testimonyLines, subtitle, onChallenge);
+  });
 
   const changeStatement = (offset) => {
     state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
