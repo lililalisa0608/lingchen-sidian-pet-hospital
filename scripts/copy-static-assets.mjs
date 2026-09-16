@@ -8,7 +8,7 @@ const destination = resolve(projectRoot, "dist", "assets");
 
 const requiredAssets = [
   "audio/clean-soul.m4a",
-  "audio/unsolved-investigation.ogg",
+  "audio/judgement-cross-examination.ogg",
   "backgrounds/cover-clinic-interior-v1.png",
   "backgrounds/hospital-exterior-v2.png",
   "backgrounds/isolation-room-v1.png",

@@ -161,43 +161,40 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .leave-button { position: absolute; z-index: 12; right: 26px; bottom: 24px; min-width: 148px; min-height: 44px; border: 1px solid rgba(255,255,255,.78); border-radius: 24px; color: #fff; background: rgba(20,58,49,.9); box-shadow: 0 8px 22px rgba(16,33,29,.18); cursor: pointer; }
 .leave-button:disabled { color: rgba(255,255,255,.72); background: rgba(70,78,75,.68); cursor: not-allowed; }
 
-/* Testimony is a sentence-by-sentence confrontation, visually distinct from inquiry lists. */
-.stage-testimony::before { content: ""; position: absolute; z-index: 1; inset: 0; background: rgba(5,17,16,.64); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
-.testimony-scrim { position: absolute; z-index: 1; inset: 0; background: rgba(10,28,25,.2); }
-.testimony-character { z-index: 2; right: max(-42px, calc(50% - 650px)); bottom: -13vh; height: 104vh; opacity: .92; filter: drop-shadow(-18px 16px 22px rgba(5,17,15,.42)); }
-.testimony-panel { position: absolute; z-index: 4; left: clamp(38px,6vw,100px); top: 15%; display: grid; gap: 18px; width: min(770px,65vw); color: #fff; }
-.testimony-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 0 8px 16px; border-bottom: 1px solid rgba(255,255,255,.34); }
-.testimony-heading p { display: flex; align-items: center; gap: 7px; margin: 0 0 7px; color: #b9d7ce; font-size: 11px; font-weight: 700; letter-spacing: .16em; }
-.testimony-heading p i { font-size: 16px; }
-.testimony-heading h1 { margin: 0; font: 560 clamp(30px,3vw,44px)/1.2 "Noto Serif SC", "Songti SC", serif; letter-spacing: .04em; text-shadow: 0 4px 18px rgba(0,0,0,.42); }
-.testimony-counter { display: flex; align-items: baseline; color: rgba(255,255,255,.58); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-.testimony-counter strong { color: #fff; font-size: 35px; font-weight: 500; }
-.testimony-counter span { margin-left: 6px; font-size: 14px; }
-.testimony-track { display: grid; grid-template-columns: 88px minmax(0,1fr) 88px; align-items: stretch; gap: 11px; }
-.testimony-nav { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; min-height: 198px; border: 1px solid rgba(255,255,255,.32); border-radius: 4px; color: rgba(255,255,255,.78); background: rgba(18,48,42,.72); cursor: pointer; transition: background .16s ease, border-color .16s ease, transform .16s ease; }
-.testimony-nav i { font-size: 26px; }
-.testimony-nav span { font-size: 10px; letter-spacing: .1em; }
-.testimony-nav:hover { border-color: rgba(255,255,255,.8); background: rgba(33,85,72,.86); transform: translateY(-2px); }
-.testimony-statement { position: relative; display: flex; flex-direction: column; justify-content: center; min-height: 198px; padding: 32px 38px 34px; overflow: hidden; border: 1px solid rgba(255,255,255,.9); border-radius: 4px; color: var(--ink); background: rgba(248,246,239,.97); box-shadow: 0 22px 60px rgba(4,14,12,.38); touch-action: pan-y; }
-.testimony-statement-label { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-.testimony-statement-label span { color: var(--green-2); font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; }
-.testimony-statement-label em { padding: 5px 8px; border: 1px solid rgba(38,91,77,.24); border-radius: 12px; color: #65736e; background: #edf0ec; font-size: 10px; font-style: normal; }
-.testimony-statement.pressed .testimony-statement-label em { color: #fff; background: var(--green-2); }
-.testimony-statement blockquote { position: relative; margin: 0; font: 560 clamp(18px,1.65vw,23px)/1.68 "Noto Serif SC", "Songti SC", serif; letter-spacing: .015em; }
-.testimony-progress { display: flex; justify-content: center; gap: 9px; height: 8px; }
-.testimony-progress span { width: 18px; height: 3px; background: rgba(255,255,255,.3); transition: width .16s ease, background .16s ease; }
-.testimony-progress span.pressed { background: rgba(179,214,203,.72); }
-.testimony-progress span.active { width: 38px; background: #fff; }
-.testimony-actions { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding-top: 2px; }
-.testimony-actions > p { margin: 0; color: rgba(255,255,255,.68); font-size: 11px; letter-spacing: .04em; }
-.testimony-actions > div { display: flex; gap: 10px; }
-.testimony-action { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 142px; min-height: 54px; padding: 0 20px; border-radius: 4px; color: #fff; cursor: pointer; box-shadow: 0 12px 30px rgba(4,14,12,.24); transition: transform .16s ease, filter .16s ease; }
-.testimony-action i { font-size: 23px; }
-.testimony-action span { display: flex; flex-direction: column; align-items: flex-start; font-size: 16px; font-weight: 700; line-height: 1.05; }
-.testimony-action small { margin-bottom: 4px; font: 600 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; opacity: .7; }
-.testimony-action.press { border: 1px solid rgba(255,255,255,.62); background: rgba(28,66,58,.9); }
-.testimony-action.challenge { border: 1px solid #d5b27a; background: #8b3f34; }
-.testimony-action:hover { filter: brightness(1.12); transform: translateY(-2px); }
+/* Cross-examination enters with a short sting, then reuses the normal dialogue composition. */
+.stage-testimony-intro::before { content: ""; position: absolute; z-index: 1; inset: 0; background: radial-gradient(circle at 50% 46%, rgba(36,88,75,.2), rgba(5,17,16,.9) 68%); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.testimony-intro-scrim { position: absolute; z-index: 2; inset: 0; overflow: hidden; background: linear-gradient(115deg, transparent 0 43%, rgba(173,212,200,.08) 43% 44%, transparent 44% 56%, rgba(173,212,200,.06) 56% 57%, transparent 57%); }
+.testimony-intro-card { position: absolute; z-index: 3; left: 50%; top: 49%; width: min(760px,calc(100% - 48px)); transform: translate(-50%,-50%); color: #fff; text-align: center; animation: testimonyTitleIn .58s cubic-bezier(.16,.84,.29,1) both; }
+.testimony-intro-card::before, .testimony-intro-card::after { content: ""; position: absolute; left: 50%; width: min(620px,86%); height: 1px; transform: translateX(-50%); background: linear-gradient(90deg,transparent,#d6b574 22%,#fff 50%,#d6b574 78%,transparent); }
+.testimony-intro-card::before { top: -28px; }
+.testimony-intro-card::after { bottom: -30px; }
+.testimony-intro-card p { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 0 0 15px; color: #d6b574; font: 700 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing: .28em; }
+.testimony-intro-card p span { width: 54px; height: 1px; background: currentColor; }
+.testimony-intro-card h1 { margin: 0; font: 650 clamp(50px,7vw,94px)/1.05 "Noto Serif SC","Songti SC",serif; letter-spacing: .16em; text-indent: .16em; text-shadow: 0 5px 26px rgba(0,0,0,.5); }
+.testimony-intro-card strong { display: block; margin-top: 18px; color: rgba(255,255,255,.72); font-size: 14px; font-weight: 450; letter-spacing: .18em; }
+.testimony-intro-card button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-top: 30px; padding: 0 18px; border: 1px solid rgba(255,255,255,.46); border-radius: 22px; color: rgba(255,255,255,.88); background: rgba(20,56,48,.7); cursor: pointer; }
+@keyframes testimonyTitleIn { from { opacity: 0; scale: .82; filter: blur(10px); } 55% { opacity: 1; } to { opacity: 1; scale: 1; filter: blur(0); } }
+
+.dialogue.testimony-mode { min-height: 224px; padding-bottom: 78px; cursor: default; border-color: rgba(47,94,82,.4); box-shadow: 0 18px 58px rgba(15,29,26,.34), inset 0 -4px 0 rgba(139,63,52,.72); }
+.dialogue.testimony-mode .speaker { display: flex; align-items: center; gap: 17px; min-width: 330px; }
+.dialogue.testimony-mode .speaker small { padding-left: 16px; border-left: 1px solid rgba(255,255,255,.3); color: rgba(255,255,255,.65); font: 600 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing: .08em; }
+.dialogue.testimony-mode .dialogue-text { max-width: 940px; font-family: "Noto Serif SC","Songti SC",serif; font-weight: 560; touch-action: pan-y; }
+.testimony-dialogue-tools { position: absolute; left: 28px; right: 28px; bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.testimony-dialogue-nav { display: flex; align-items: center; gap: 13px; }
+.testimony-dialogue-nav button, .testimony-dialogue-actions button { display: inline-flex; align-items: center; justify-content: center; border-radius: 3px; cursor: pointer; transition: transform .15s ease, filter .15s ease, background .15s ease; }
+.testimony-dialogue-nav button { gap: 6px; min-height: 38px; padding: 0 13px; border: 1px solid rgba(31,68,58,.23); color: #43534e; background: rgba(255,255,255,.52); font-size: 12px; }
+.testimony-dialogue-progress { display: flex; align-items: center; gap: 6px; }
+.testimony-dialogue-progress span { width: 15px; height: 3px; background: #c8cfcb; transition: width .16s ease, background .16s ease; }
+.testimony-dialogue-progress span.pressed { background: #7fa497; }
+.testimony-dialogue-progress span.active { width: 30px; background: var(--green); }
+.testimony-dialogue-actions { display: flex; gap: 8px; }
+.testimony-dialogue-actions button { gap: 9px; min-width: 126px; min-height: 44px; padding: 0 17px; color: #fff; box-shadow: 0 8px 20px rgba(19,38,33,.17); }
+.testimony-dialogue-actions button i { font-size: 20px; }
+.testimony-dialogue-actions button span { display: flex; align-items: baseline; gap: 7px; font-weight: 700; }
+.testimony-dialogue-actions button small { font: 600 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing: .09em; opacity: .65; }
+.testimony-dialogue-actions .press { border: 1px solid rgba(255,255,255,.62); background: var(--green); }
+.testimony-dialogue-actions .challenge { border: 1px solid #d5b27a; background: #8b3f34; }
+.testimony-dialogue-nav button:hover, .testimony-dialogue-actions button:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
 .evidence-select-panel { width: min(980px, 100%); max-height: calc(100vh - 48px); padding: 30px; overflow-y: auto; border: 1px solid rgba(255,255,255,.8); border-radius: 5px; color: var(--ink); background: var(--paper); box-shadow: 0 30px 90px rgba(8,20,17,.42); }
 .evidence-select-panel > header { margin-bottom: 22px; }
@@ -349,30 +346,25 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .evidence-detail { border-left: 0; border-top: 1px solid var(--line); }
   .settings-panel section { grid-template-columns: 1fr; gap: 12px; }
   .setting-toggle, .segmented { justify-self: start; }
-  .testimony-character { top: 54px; right: -19%; bottom: auto; width: 38dvh; height: 57dvh; opacity: .72; }
-  .testimony-panel { left: 12px; right: 12px; top: 74px; display: flex; flex-direction: column; gap: 12px; width: auto; }
-  .testimony-heading { align-items: flex-start; padding: 0 2px 10px; border-bottom: 0; }
-  .testimony-heading p { margin-bottom: 5px; font-size: 9px; }
-  .testimony-heading h1 { font-size: 25px; }
-  .testimony-counter strong { font-size: 26px; }
-  .testimony-counter span { font-size: 11px; }
-  .testimony-track { grid-template-columns: 42px minmax(0,1fr) 42px; gap: 6px; margin-top: 20dvh; }
-  .testimony-nav { min-height: 188px; padding: 0; }
-  .testimony-nav i { font-size: 21px; }
-  .testimony-nav span { display: none; }
-  .testimony-statement { min-height: 188px; padding: 24px 20px 26px; }
-  .testimony-statement-label { margin-bottom: 13px; }
-  .testimony-statement-label em { font-size: 9px; }
-  .testimony-statement blockquote { font-size: 16px; line-height: 1.65; }
-  .testimony-progress { gap: 7px; }
-  .testimony-progress span { width: 14px; }
-  .testimony-progress span.active { width: 30px; }
-  .testimony-actions { flex-direction: column; align-items: stretch; gap: 8px; }
-  .testimony-actions > p { text-align: center; font-size: 10px; }
-  .testimony-actions > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
-  .testimony-action { min-width: 0; min-height: 50px; padding: 0 14px; }
-  .testimony-action i { font-size: 21px; }
-  .testimony-action span { font-size: 15px; }
+  .testimony-intro-card { width: calc(100% - 30px); }
+  .testimony-intro-card p { gap: 9px; font-size: 9px; letter-spacing: .18em; }
+  .testimony-intro-card p span { width: 28px; }
+  .testimony-intro-card h1 { font-size: clamp(42px,15vw,62px); letter-spacing: .1em; text-indent: .1em; }
+  .testimony-intro-card strong { margin-top: 14px; font-size: 12px; letter-spacing: .1em; }
+  .dialogue.testimony-mode { min-height: 252px; padding: 52px 20px 114px; }
+  .dialogue.testimony-mode .speaker { min-width: 250px; gap: 10px; }
+  .dialogue.testimony-mode .speaker small { padding-left: 10px; font-size: 8px; }
+  .dialogue.testimony-mode .dialogue-text { font-size: 17px; line-height: 1.66; }
+  .testimony-dialogue-tools { left: 12px; right: 12px; bottom: 12px; display: grid; gap: 8px; }
+  .testimony-dialogue-nav { justify-content: space-between; gap: 6px; }
+  .testimony-dialogue-nav button { min-height: 36px; padding: 0 10px; }
+  .testimony-dialogue-nav button span { font-size: 11px; }
+  .testimony-dialogue-progress span { width: 11px; }
+  .testimony-dialogue-progress span.active { width: 24px; }
+  .testimony-dialogue-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+  .testimony-dialogue-actions button { min-width: 0; min-height: 48px; padding: 0 10px; }
+  .testimony-dialogue-actions button i { font-size: 19px; }
+  .testimony-dialogue-actions button span { font-size: 15px; }
   .evidence-select-panel { width: 100%; max-height: calc(100vh - 24px); padding: 20px 14px; }
   .evidence-select-panel > header { margin-bottom: 14px; }
   .evidence-select-panel > header h2 { font-size: 22px; }

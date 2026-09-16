@@ -72,6 +72,38 @@ final result: passed
 
 ---
 
+## Standard-dialogue cross-examination pass — 2026-09-16
+
+### Source visual truth
+
+- The user's current direction supersedes the previous custom confrontation panel: the cross-examination must use the established normal dialogue box, with previous/next statement controls and separate 追问／质疑 actions.
+- The previously approved PC and mobile Tang Ning portrait geometry remains the portrait baseline.
+
+### Rendered evidence
+
+- Headless Chrome captures inspected at 1280 × 720 and 393 × 852 CSS px for both the entry title and statement 3 of the active cross-examination.
+- Desktop: the standard bottom dialogue composition remains intact; Tang Ning uses the existing right-side portrait scale; navigation and actions stay on one line without covering the statement.
+- Mobile: the approved portrait position and size remain intact; the dialogue box fits the viewport; navigation remains legible; both actions are 48 px high and the page does not scroll.
+- Entry title: `CROSS-EXAMINATION / 证言质疑` remains centered and readable in both viewports, with the hospital background visibly retained beneath the short transition.
+
+### Interaction evidence
+
+- Automated headless flow verified statement 3 → next → previous, then challenged statement 3 with 《隔离间录像》 and reached the video reveal dialogue.
+- Automated headless flow also verified that the entry title automatically advances to the normal dialogue cross-examination within the expected timeout.
+- Code inspection confirms that both 《使用过的治疗用品》 and 《隔离间录像》 are accepted on statement 3; the former preserves the follow-up proof step and the latter proceeds directly to the video reveal.
+
+### Audio and implementation checks
+
+- Story BGM mix was doubled relative to the old value, cross-examination uses a dedicated higher-energy CC0 track, door noise/thud were raised, and the routine next-line cue was reduced.
+- The new BGM is present in the production asset manifest and final `dist` output.
+- Production build and JavaScript syntax check passed.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Sentence-by-sentence testimony confrontation pass — 2026-09-14
 
 ### Source visual truth

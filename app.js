@@ -92,6 +92,7 @@ const state = {
   dialogueDone: null,
   dialogueHistory: [],
   typingTimer: null,
+  testimonyIntroTimer: null,
   typingComplete: true,
   fullLine: "",
   textSpeed: localStorage.getItem("mystery-text-speed") || "instant",
@@ -115,7 +116,11 @@ const sceneAdvanceGesture = {
 const audio = {
   tracks: {
     story: "/assets/audio/clean-soul.m4a",
-    testimony: "/assets/audio/unsolved-investigation.ogg",
+    testimony: "/assets/audio/judgement-cross-examination.ogg",
+  },
+  trackMix: {
+    story: 0.56,
+    testimony: 0.68,
   },
   currentTrack: "story",
   context: null,
@@ -161,7 +166,7 @@ const audio = {
   update() {
     const value = state.muted ? 0 : state.volume / 100;
     if (this.gain && this.context) this.gain.gain.setTargetAtTime(value, this.context.currentTime, 0.04);
-    if (this.bgm) this.bgm.volume = Math.min(1, value * 0.28);
+    if (this.bgm) this.bgm.volume = Math.min(1, value * (this.trackMix[this.currentTrack] || 0.56));
   },
   phonePulse() {
     if (!this.context || state.muted || state.volume === 0) return;
@@ -185,7 +190,7 @@ const audio = {
   door() {
     if (!this.context || state.muted || state.volume === 0) return;
     const now = this.context.currentTime;
-    const length = Math.floor(this.context.sampleRate * 0.48);
+    const length = Math.floor(this.context.sampleRate * 0.64);
     const buffer = this.context.createBuffer(1, length, this.context.sampleRate);
     const channel = buffer.getChannelData(0);
     for (let index = 0; index < length; index += 1) {
@@ -200,11 +205,11 @@ const audio = {
     filter.frequency.setValueAtTime(720, now);
     filter.frequency.exponentialRampToValueAtTime(180, now + 0.46);
     filter.Q.value = 1.1;
-    noiseGain.gain.setValueAtTime(0.18, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
+    noiseGain.gain.setValueAtTime(0.48, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.62);
     noise.connect(filter).connect(noiseGain).connect(this.gain);
     noise.start(now);
-    noise.stop(now + 0.5);
+    noise.stop(now + 0.64);
 
     const thud = this.context.createOscillator();
     const thudGain = this.context.createGain();
@@ -212,7 +217,7 @@ const audio = {
     thud.frequency.setValueAtTime(105, now + 0.31);
     thud.frequency.exponentialRampToValueAtTime(58, now + 0.46);
     thudGain.gain.setValueAtTime(0.0001, now + 0.3);
-    thudGain.gain.exponentialRampToValueAtTime(0.24, now + 0.325);
+    thudGain.gain.exponentialRampToValueAtTime(0.52, now + 0.325);
     thudGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.49);
     thud.connect(thudGain).connect(this.gain);
     thud.start(now + 0.3);
@@ -233,7 +238,7 @@ const audio = {
     overtone.frequency.value = 820;
     overtoneGain.gain.value = 0.26;
     tapGain.gain.setValueAtTime(0.0001, now);
-    tapGain.gain.exponentialRampToValueAtTime(0.34, now + 0.003);
+    tapGain.gain.exponentialRampToValueAtTime(0.18, now + 0.003);
     tapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
 
     tone.connect(tapGain);
@@ -257,6 +262,40 @@ const audio = {
     oscillator.start();
     oscillator.stop(this.context.currentTime + 0.24);
   },
+  testimonySting() {
+    if (!this.context || state.muted || state.volume === 0) return;
+    const now = this.context.currentTime;
+    const master = this.context.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.52, now + 0.035);
+    master.gain.setValueAtTime(0.52, now + 0.34);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.92);
+    master.connect(this.gain);
+
+    [146.83, 220, 293.66].forEach((frequency, index) => {
+      const tone = this.context.createOscillator();
+      const toneGain = this.context.createGain();
+      tone.type = index === 0 ? "sawtooth" : "triangle";
+      tone.frequency.setValueAtTime(frequency, now);
+      tone.frequency.exponentialRampToValueAtTime(frequency * 1.5, now + 0.38);
+      toneGain.gain.value = index === 0 ? 0.32 : 0.2;
+      tone.connect(toneGain).connect(master);
+      tone.start(now + index * 0.045);
+      tone.stop(now + 0.94);
+    });
+
+    const hit = this.context.createOscillator();
+    const hitGain = this.context.createGain();
+    hit.type = "sine";
+    hit.frequency.setValueAtTime(92, now);
+    hit.frequency.exponentialRampToValueAtTime(46, now + 0.42);
+    hitGain.gain.setValueAtTime(0.0001, now);
+    hitGain.gain.exponentialRampToValueAtTime(0.7, now + 0.018);
+    hitGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
+    hit.connect(hitGain).connect(master);
+    hit.start(now);
+    hit.stop(now + 0.5);
+  },
 };
 
 function setHud(title, subtitle = "", visible = true) {
@@ -276,12 +315,21 @@ function setStage(screen, background, markup = "") {
 
 function resetPanels() {
   clearTyping();
+  clearTestimonyInterface();
+  if (state.testimonyIntroTimer) window.clearTimeout(state.testimonyIntroTimer);
+  state.testimonyIntroTimer = null;
   els.dialogue.classList.add("hidden");
   els.game.classList.remove("dialogue-active");
   els.choices.classList.add("hidden");
   els.overlay.classList.add("hidden");
   els.overlay.innerHTML = "";
   closeModal();
+}
+
+function clearTestimonyInterface() {
+  els.dialogue.classList.remove("testimony-mode");
+  els.dialogue.querySelector(".testimony-dialogue-tools")?.remove();
+  els.advance.classList.remove("hidden");
 }
 
 function showToast(message) {
@@ -373,6 +421,7 @@ function renderLineText(text) {
 }
 
 function runDialogue(lines, done) {
+  clearTestimonyInterface();
   state.dialogueQueue = lines.map(([speaker, text, expression]) => ({ speaker, text, expression }));
   state.dialogueDone = done || null;
   els.choices.classList.add("hidden");
@@ -941,7 +990,33 @@ function renderTangConfrontation() {
   resetPanels();
   setHud("对质唐宁", "消失的两分钟", true);
   setStage("scene scene-transition", backgrounds.consultationClean);
-  runDialogue(data.tangConfrontIntro, renderTangTestimony);
+  runDialogue(data.tangConfrontIntro, renderTestimonyIntro);
+}
+
+function renderTestimonyIntro() {
+  resetPanels();
+  audio.setTrack("testimony");
+  setHud("对质唐宁", "证言质疑", true);
+  setStage("testimony-intro", backgrounds.consultationClean, `
+    <div class="testimony-intro-scrim"></div>
+    <section class="testimony-intro-card" aria-label="进入证言质疑">
+      <p><span></span>CROSS-EXAMINATION<span></span></p>
+      <h1>证言质疑</h1>
+      <strong>逐句核验唐宁的证词</strong>
+      <button id="enter-testimony" type="button">进入质疑 <i class="ph ph-arrow-right"></i></button>
+    </section>`);
+  audio.testimonySting();
+
+  let entered = false;
+  const enter = () => {
+    if (entered) return;
+    entered = true;
+    if (state.testimonyIntroTimer) window.clearTimeout(state.testimonyIntroTimer);
+    state.testimonyIntroTimer = null;
+    renderTangTestimony();
+  };
+  document.querySelector("#enter-testimony").addEventListener("click", enter);
+  state.testimonyIntroTimer = window.setTimeout(enter, 1800);
 }
 
 function renderTangTestimony() {
@@ -952,34 +1027,29 @@ function renderTangTestimony() {
   const isPressed = state.testimonyPressed.has(index);
   const total = data.tangTestimony.length;
   setHud("对质唐宁", "切换证言 · 追问 / 质疑", true);
-  setStage("testimony", backgrounds.consultationClean, `
-    <div class="testimony-scrim"></div>
-    <div class="speaker-portrait portrait-frame portrait-right portrait-tang testimony-character expression-1" style="--portrait-sheet:url('${data.characters.tang.frames[1]}')" aria-hidden="true"></div>
-    <section class="testimony-panel" aria-label="唐宁的证言">
-      <header class="testimony-heading">
-        <div>
-          <p><i class="ph ph-waveform"></i> TESTIMONY · 唐宁的证言</p>
-          <h1>案发时的行动</h1>
-        </div>
-        <div class="testimony-counter"><strong>${String(index + 1).padStart(2, "0")}</strong><span>/ ${String(total).padStart(2, "0")}</span></div>
-      </header>
-      <div class="testimony-track">
-        <button id="previous-testimony" class="testimony-nav" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
-        <article id="current-testimony" class="testimony-statement${isPressed ? " pressed" : ""}" tabindex="0">
-          <div class="testimony-statement-label"><span>STATEMENT ${String(index + 1).padStart(2, "0")}</span><em>${isPressed ? "已追问" : "尚未追问"}</em></div>
-          <blockquote>${statement.text}</blockquote>
-        </article>
-        <button id="next-testimony" class="testimony-nav" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
+  setStage("testimony-dialogue", backgrounds.consultationClean);
+  showSpeakerPortrait("唐宁", statement.text, 1);
+  els.dialogue.classList.add("testimony-mode");
+  els.dialogue.classList.remove("hidden", "narration");
+  els.game.classList.add("dialogue-active");
+  els.speaker.classList.remove("hidden");
+  els.speaker.innerHTML = `<span>唐宁</span><small>证言 ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")} · ${isPressed ? "已追问" : "尚未追问"}</small>`;
+  clearTyping();
+  state.fullLine = statement.text;
+  els.text.textContent = statement.text;
+  els.advance.classList.add("hidden");
+  els.dialogue.insertAdjacentHTML("beforeend", `
+    <div class="testimony-dialogue-tools" aria-label="证言操作">
+      <div class="testimony-dialogue-nav">
+        <button id="previous-testimony" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
+        <div class="testimony-dialogue-progress" aria-label="证言进度">${data.tangTestimony.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
+        <button id="next-testimony" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
       </div>
-      <div class="testimony-progress" aria-label="证言进度">${data.tangTestimony.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
-      <footer class="testimony-actions">
-        <p>切换前后证言，对当前这句话采取行动</p>
-        <div>
-          <button id="press-testimony" class="testimony-action press" type="button"><i class="ph ph-chat-circle-dots"></i><span><small>PRESS</small>追问</span></button>
-          <button id="challenge-testimony" class="testimony-action challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
-        </div>
-      </footer>
-    </section>`);
+      <div class="testimony-dialogue-actions">
+        <button id="press-testimony" class="press" type="button"><i class="ph ph-chat-circle-dots"></i><span><small>PRESS</small>追问</span></button>
+        <button id="challenge-testimony" class="challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
+      </div>
+    </div>`);
 
   const changeStatement = (offset) => {
     state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
@@ -996,7 +1066,7 @@ function renderTangTestimony() {
   });
   document.querySelector("#challenge-testimony").addEventListener("click", presentAgainstTestimony);
 
-  const card = document.querySelector("#current-testimony");
+  const card = els.text;
   let startX = 0;
   card.addEventListener("pointerdown", (event) => {
     startX = event.clientX;
@@ -1011,16 +1081,20 @@ function renderTangTestimony() {
 function presentAgainstTestimony() {
   askEvidence(
     "哪件证物与这句证言矛盾？",
-    "usedSupplies",
-    () => {
+    ["usedSupplies", "isolationVideo"],
+    (selected) => {
       if (state.selectedTestimony !== 2) {
         runDialogue([["许知衡（心声）", "这件证物与当前证言还不能构成直接矛盾。先证明唐宁并不只是在等审批结果。"]], renderTangTestimony);
         return;
       }
       setStage("scene", backgrounds.consultationClean);
+      if (selected === "isolationVideo") {
+        runDialogue(data.treatmentVideoReveal, revealCommunicationRecord);
+        return;
+      }
       runDialogue(data.treatmentContradiction, askWhoUsedSupplies);
     },
-    "这件证物还不能证明唐宁没有等待审批。",
+    "需要能直接证明隔离间里确实发生过治疗的证物。",
     renderTangTestimony,
   );
 }
@@ -1096,6 +1170,7 @@ function askAlibiEvidence() {
 }
 
 function askEvidence(question, correctKey, onCorrect, wrongHint, onCancel) {
+  const correctKeys = Array.isArray(correctKey) ? correctKey : [correctKey];
   const keys = [...state.evidence];
   els.overlay.innerHTML = `
     <section class="evidence-select-panel" aria-label="选择证物">
@@ -1113,9 +1188,9 @@ function askEvidence(question, correctKey, onCorrect, wrongHint, onCancel) {
     const selected = button.dataset.presentEvidence;
     els.overlay.classList.add("hidden");
     els.overlay.innerHTML = "";
-    if (selected === correctKey) {
+    if (correctKeys.includes(selected)) {
       audio.cue("evidence");
-      onCorrect();
+      onCorrect(selected);
       return;
     }
     runDialogue([["许知衡（心声）", wrongHint]], () => askEvidence(question, correctKey, onCorrect, wrongHint, onCancel));
@@ -1257,7 +1332,7 @@ els.game.addEventListener("pointerup", finishSceneAdvanceGesture);
 els.game.addEventListener("pointercancel", cancelSceneAdvanceGesture);
 els.advance.addEventListener("click", advanceDialogue);
 els.dialogue.addEventListener("click", (event) => {
-  if (!event.target.closest("button")) advanceDialogue();
+  if (!event.target.closest("button") && !els.dialogue.classList.contains("testimony-mode")) advanceDialogue();
 });
 els.evidenceButton.addEventListener("click", openEvidenceModal);
 els.recordButton.addEventListener("click", openRecordModal);
@@ -1266,12 +1341,12 @@ els.modalClose.addEventListener("click", closeModal);
 els.modalScrim.addEventListener("click", closeModal);
 
 document.addEventListener("keydown", (event) => {
-  if ((event.key === "Enter" || event.key === " ") && !els.dialogue.classList.contains("hidden")) {
+  if ((event.key === "Enter" || event.key === " ") && !els.dialogue.classList.contains("hidden") && !els.dialogue.classList.contains("testimony-mode")) {
     event.preventDefault();
     advanceDialogue();
   }
   if (event.key === "Escape") closeModal();
-  if (els.stage.classList.contains("stage-testimony") && els.overlay.classList.contains("hidden") && els.modal.classList.contains("hidden")) {
+  if (els.stage.classList.contains("stage-testimony-dialogue") && els.overlay.classList.contains("hidden") && els.modal.classList.contains("hidden")) {
     if (event.key === "ArrowLeft") {
       event.preventDefault();
       document.querySelector("#previous-testimony")?.click();
