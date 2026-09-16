@@ -104,6 +104,35 @@ final result: passed
 
 ---
 
+## Audio reliability, BGM audition, and loading pass — 2026-09-16
+
+### User-reported regressions
+
+- PC and mobile both played BGM but not dialogue advance, door, investigation, evidence, or cross-examination entry effects.
+- Background scenes took too long to appear.
+- The selected cross-examination track did not fit; the player needed to hear alternatives directly.
+- Equivalent entry and completion actions used inconsistent verbs.
+
+### Implemented correction
+
+- Replaced the separate Web Audio synthesis path with six deterministic WAV assets played through the same HTML Audio mechanism already proven by BGM playback.
+- Added four sound-effect test buttons and four selectable, persistent cross-examination BGM audition cards to Settings.
+- Converted the ten deployed background scenes from 20+ MB of PNG files to 3.3 MB of visually inspected quality-82 JPEG files. Cover and phone are prioritized; remaining backgrounds, portraits, and evidence now preload sequentially instead of competing in one burst.
+- Standardized entry actions to “进入＋地点／环节”, investigation completion to “完成调查”, and inquiry completion to “完成询问”.
+
+### Rendered and interaction evidence
+
+- Headless Chrome captures inspected at 1280 × 720 and 393 × 852 CSS px. The enlarged Settings modal remains readable and scrollable; PC uses a two-column track grid and mobile uses a single-column grid.
+- Automated browser flow intercepted actual media play calls and verified all four test effects plus all four BGM candidates.
+- Representative optimized backgrounds were inspected at original pixel dimensions; no actionable JPEG artifacts, crop changes, hotspot-coordinate changes, or portrait-layout changes were found.
+- All generated WAV files pass macOS audio-container inspection; all BGM candidates pass Ogg duration and stream inspection.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Sentence-by-sentence testimony confrontation pass — 2026-09-14
 
 ### Source visual truth

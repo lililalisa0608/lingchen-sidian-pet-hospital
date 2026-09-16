@@ -27,49 +27,90 @@ const els = {
 };
 
 const backgrounds = {
-  cover: "/assets/backgrounds/cover-clinic-interior-v1.png",
-  phone: "/assets/backgrounds/opening-phone-v2.png",
-  exterior: "/assets/backgrounds/hospital-exterior-v2.png",
-  title: "/assets/backgrounds/title-transition-v3.png",
-  waiting: "/assets/backgrounds/waiting-area-clean-v1.png",
-  waitingCast: "/assets/backgrounds/waiting-area-cast-v2.png",
-  corridor: "/assets/backgrounds/second-consultation-corridor-v1.png",
-  clinic: "/assets/backgrounds/second-consultation-evidence-v4.png",
-  consultationClean: "/assets/backgrounds/second-consultation-clean-v1.png",
-  isolation: "/assets/backgrounds/isolation-room-v1.png",
+  cover: "/assets/backgrounds/cover-clinic-interior-v1.jpg",
+  phone: "/assets/backgrounds/opening-phone-v2.jpg",
+  exterior: "/assets/backgrounds/hospital-exterior-v2.jpg",
+  title: "/assets/backgrounds/title-transition-v3.jpg",
+  waiting: "/assets/backgrounds/waiting-area-clean-v1.jpg",
+  waitingCast: "/assets/backgrounds/waiting-area-cast-v2.jpg",
+  corridor: "/assets/backgrounds/second-consultation-corridor-v1.jpg",
+  clinic: "/assets/backgrounds/second-consultation-evidence-v4.jpg",
+  consultationClean: "/assets/backgrounds/second-consultation-clean-v1.jpg",
+  isolation: "/assets/backgrounds/isolation-room-v1.jpg",
 };
 
-// Warm the browser cache so a scene swap never exposes the stage fallback color.
-const preloadedBackgrounds = Object.values(backgrounds).map((src) => {
+const backgroundCache = new Map();
+let backgroundPreloadScheduled = false;
+
+function preloadBackground(src, priority = "auto") {
+  if (backgroundCache.has(src)) return backgroundCache.get(src);
   const image = new Image();
+  image.decoding = "async";
+  image.fetchPriority = priority;
   image.src = src;
-  return image;
-});
+  const ready = image.decode?.().catch(() => {}) || Promise.resolve();
+  backgroundCache.set(src, ready);
+  return ready;
+}
+
+function scheduleBackgroundPreload() {
+  if (backgroundPreloadScheduled) return;
+  backgroundPreloadScheduled = true;
+  const queue = Object.values(backgrounds).filter((src) => src !== backgrounds.cover && src !== backgrounds.phone);
+  const preloadNext = () => {
+    const src = queue.shift();
+    if (!src) return;
+    preloadBackground(src).finally(() => {
+      if ("requestIdleCallback" in window) window.requestIdleCallback(preloadNext, { timeout: 1400 });
+      else window.setTimeout(preloadNext, 180);
+    });
+  };
+  preloadNext();
+}
 
 const preloadedEvidenceImages = new Map();
 let evidencePreloadScheduled = false;
+const preloadedCharacterImages = new Map();
+let characterPreloadScheduled = false;
 
-Object.values(data.characters).flatMap((character) => character.frames || [character.expressions]).forEach((src) => {
-  if (!src) return;
-  const image = new Image();
-  image.decoding = "async";
-  image.src = src;
-});
+function scheduleCharacterPreload() {
+  if (characterPreloadScheduled) return;
+  characterPreloadScheduled = true;
+  const queue = Object.values(data.characters).flatMap((character) => character.frames || [character.expressions]).filter(Boolean);
+  const preloadNext = () => {
+    const src = queue.shift();
+    if (!src) return;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = src;
+    preloadedCharacterImages.set(src, image);
+    const ready = image.decode?.().catch(() => {}) || Promise.resolve();
+    ready.finally(() => {
+      if ("requestIdleCallback" in window) window.requestIdleCallback(preloadNext, { timeout: 1600 });
+      else window.setTimeout(preloadNext, 220);
+    });
+  };
+  preloadNext();
+}
 
 function scheduleEvidencePreload() {
   if (evidencePreloadScheduled) return;
   evidencePreloadScheduled = true;
-  const preload = () => {
-    Object.values(data.evidence).forEach((item) => {
-      const image = new Image();
-      image.decoding = "async";
-      image.src = item.image;
-      preloadedEvidenceImages.set(item.image, image);
-      image.decode?.().catch(() => {});
+  const queue = Object.values(data.evidence);
+  const preloadNext = () => {
+    const item = queue.shift();
+    if (!item) return;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = item.image;
+    preloadedEvidenceImages.set(item.image, image);
+    const ready = image.decode?.().catch(() => {}) || Promise.resolve();
+    ready.finally(() => {
+      if ("requestIdleCallback" in window) window.requestIdleCallback(preloadNext, { timeout: 1800 });
+      else window.setTimeout(preloadNext, 260);
     });
   };
-  if ("requestIdleCallback" in window) window.requestIdleCallback(preload, { timeout: 1200 });
-  else window.setTimeout(preload, 350);
+  preloadNext();
 }
 
 const state = {
@@ -99,6 +140,7 @@ const state = {
   fontSize: localStorage.getItem("mystery-font-size") || "medium",
   volume: Number(localStorage.getItem("mystery-volume") ?? 34),
   muted: localStorage.getItem("mystery-muted") === "true",
+  testimonyBgm: localStorage.getItem("mystery-testimony-bgm") || "courtroom",
   activePortrait: "",
   interactionScroll: {
     search: null,
@@ -116,48 +158,61 @@ const sceneAdvanceGesture = {
 const audio = {
   tracks: {
     story: "/assets/audio/clean-soul.m4a",
-    testimony: "/assets/audio/judgement-cross-examination.ogg",
+  },
+  testimonyTracks: {
+    courtroom: { name: "法庭序曲", note: "克制、悬疑", src: "/assets/audio/courtroom-cross-examination.ogg" },
+    jazzy: { name: "爵士交锋", note: "灵巧、戏剧感", src: "/assets/audio/jazzy-cross-examination.ogg" },
+    hope: { name: "管弦追击", note: "明亮、速度感", src: "/assets/audio/hope-cross-examination.ogg" },
+    judgement: { name: "审判时刻", note: "沉重、压迫感", src: "/assets/audio/judgement-cross-examination.ogg" },
+  },
+  sfx: {
+    advance: "/assets/audio/sfx/dialogue-thump.wav",
+    door: "/assets/audio/sfx/door-open-close.wav",
+    investigate: "/assets/audio/sfx/investigation-found.wav",
+    evidence: "/assets/audio/sfx/evidence-acquired.wav",
+    phone: "/assets/audio/sfx/phone-ring.wav",
+    testimony: "/assets/audio/sfx/cross-examination-sting.wav",
   },
   trackMix: {
     story: 0.56,
     testimony: 0.68,
   },
   currentTrack: "story",
-  context: null,
-  gain: null,
   bgm: null,
+  preview: null,
+  activeSfx: new Set(),
+  getTrackSource(track = this.currentTrack) {
+    if (track === "testimony") return this.testimonyTracks[state.testimonyBgm]?.src || this.testimonyTracks.courtroom.src;
+    return this.tracks.story;
+  },
   init() {
     if (!this.bgm) {
-      this.bgm = new Audio(this.tracks[this.currentTrack]);
+      this.bgm = new Audio(this.getTrackSource());
       this.bgm.loop = true;
       this.bgm.preload = "auto";
     }
-    if (!this.context) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        this.context = new AudioContext();
-        this.gain = this.context.createGain();
-        this.gain.connect(this.context.destination);
-      }
-    } else {
-      this.context.resume();
-    }
+    Object.values(this.sfx).forEach((src) => {
+      const sound = new Audio(src);
+      sound.preload = "auto";
+    });
     this.update();
     this.startBgm();
   },
   startBgm() {
-    if (!this.bgm) return;
+    if (!this.bgm || state.muted || state.volume === 0 || this.preview) return;
     this.bgm.play().catch(() => {});
   },
-  setTrack(track) {
-    if (!this.tracks[track] || track === this.currentTrack) {
+  setTrack(track, force = false) {
+    if (!this.tracks[track] && track !== "testimony") return;
+    if (track === this.currentTrack && !force) {
       this.startBgm();
       return;
     }
+    this.stopPreview(false);
     const shouldResume = Boolean(this.bgm && !this.bgm.paused);
     this.bgm?.pause();
     this.currentTrack = track;
-    this.bgm = new Audio(this.tracks[track]);
+    this.bgm = new Audio(this.getTrackSource(track));
     this.bgm.loop = true;
     this.bgm.preload = "auto";
     this.update();
@@ -165,136 +220,57 @@ const audio = {
   },
   update() {
     const value = state.muted ? 0 : state.volume / 100;
-    if (this.gain && this.context) this.gain.gain.setTargetAtTime(value, this.context.currentTime, 0.04);
     if (this.bgm) this.bgm.volume = Math.min(1, value * (this.trackMix[this.currentTrack] || 0.56));
+    if (this.preview) this.preview.volume = Math.min(1, value * this.trackMix.testimony);
+    this.activeSfx.forEach(({ player, mix }) => { player.volume = Math.min(1, value * mix); });
+  },
+  playSfx(name, mix = 0.8) {
+    if (!this.sfx[name] || state.muted || state.volume === 0) return;
+    const player = new Audio(this.sfx[name]);
+    const active = { player, mix };
+    player.preload = "auto";
+    player.volume = Math.min(1, (state.volume / 100) * mix);
+    this.activeSfx.add(active);
+    const release = () => this.activeSfx.delete(active);
+    player.addEventListener("ended", release, { once: true });
+    player.addEventListener("error", release, { once: true });
+    player.play().catch(release);
+  },
+  previewTestimony(trackId) {
+    if (!this.testimonyTracks[trackId]) return;
+    state.testimonyBgm = trackId;
+    localStorage.setItem("mystery-testimony-bgm", trackId);
+    if (this.currentTrack === "testimony") {
+      this.setTrack("testimony", true);
+      return;
+    }
+    this.preview?.pause();
+    this.bgm?.pause();
+    this.preview = new Audio(this.testimonyTracks[trackId].src);
+    this.preview.loop = true;
+    this.preview.preload = "auto";
+    this.update();
+    this.preview.play().catch(() => {});
+  },
+  stopPreview(resume = true) {
+    this.preview?.pause();
+    this.preview = null;
+    if (resume) this.startBgm();
   },
   phonePulse() {
-    if (!this.context || state.muted || state.volume === 0) return;
-    const now = this.context.currentTime;
-    [0, 0.46].forEach((offset) => {
-      [440, 480].forEach((frequency) => {
-        const oscillator = this.context.createOscillator();
-        const pulseGain = this.context.createGain();
-        oscillator.type = "sine";
-        oscillator.frequency.value = frequency;
-        pulseGain.gain.setValueAtTime(0.0001, now + offset);
-        pulseGain.gain.exponentialRampToValueAtTime(0.2, now + offset + 0.025);
-        pulseGain.gain.setValueAtTime(0.2, now + offset + 0.28);
-        pulseGain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.36);
-        oscillator.connect(pulseGain).connect(this.gain);
-        oscillator.start(now + offset);
-        oscillator.stop(now + offset + 0.38);
-      });
-    });
+    this.playSfx("phone", 0.9);
   },
   door() {
-    if (!this.context || state.muted || state.volume === 0) return;
-    const now = this.context.currentTime;
-    const length = Math.floor(this.context.sampleRate * 0.64);
-    const buffer = this.context.createBuffer(1, length, this.context.sampleRate);
-    const channel = buffer.getChannelData(0);
-    for (let index = 0; index < length; index += 1) {
-      const progress = index / length;
-      channel[index] = (Math.random() * 2 - 1) * Math.pow(1 - progress, 2.2);
-    }
-    const noise = this.context.createBufferSource();
-    const filter = this.context.createBiquadFilter();
-    const noiseGain = this.context.createGain();
-    noise.buffer = buffer;
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(720, now);
-    filter.frequency.exponentialRampToValueAtTime(180, now + 0.46);
-    filter.Q.value = 1.1;
-    noiseGain.gain.setValueAtTime(0.48, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.62);
-    noise.connect(filter).connect(noiseGain).connect(this.gain);
-    noise.start(now);
-    noise.stop(now + 0.64);
-
-    const thud = this.context.createOscillator();
-    const thudGain = this.context.createGain();
-    thud.type = "sine";
-    thud.frequency.setValueAtTime(105, now + 0.31);
-    thud.frequency.exponentialRampToValueAtTime(58, now + 0.46);
-    thudGain.gain.setValueAtTime(0.0001, now + 0.3);
-    thudGain.gain.exponentialRampToValueAtTime(0.52, now + 0.325);
-    thudGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.49);
-    thud.connect(thudGain).connect(this.gain);
-    thud.start(now + 0.3);
-    thud.stop(now + 0.5);
+    this.playSfx("door", 1);
   },
   advance() {
-    if (!this.context || state.muted || state.volume === 0) return;
-    const now = this.context.currentTime;
-    const tone = this.context.createOscillator();
-    const overtone = this.context.createOscillator();
-    const overtoneGain = this.context.createGain();
-    const tapGain = this.context.createGain();
-
-    tone.type = "sine";
-    tone.frequency.setValueAtTime(390, now);
-    tone.frequency.exponentialRampToValueAtTime(250, now + 0.16);
-    overtone.type = "sine";
-    overtone.frequency.value = 820;
-    overtoneGain.gain.value = 0.26;
-    tapGain.gain.setValueAtTime(0.0001, now);
-    tapGain.gain.exponentialRampToValueAtTime(0.18, now + 0.003);
-    tapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-
-    tone.connect(tapGain);
-    overtone.connect(overtoneGain).connect(tapGain);
-    tapGain.connect(this.gain);
-    tone.start(now);
-    overtone.start(now);
-    tone.stop(now + 0.17);
-    overtone.stop(now + 0.17);
+    this.playSfx("advance", 0.45);
   },
   cue(type = "soft") {
-    if (!this.context || state.muted || state.volume === 0) return;
-    const oscillator = this.context.createOscillator();
-    const cueGain = this.context.createGain();
-    oscillator.type = type === "evidence" ? "triangle" : "sine";
-    oscillator.frequency.value = type === "evidence" ? 523.25 : 392;
-    cueGain.gain.setValueAtTime(0, this.context.currentTime);
-    cueGain.gain.linearRampToValueAtTime(0.18, this.context.currentTime + 0.015);
-    cueGain.gain.exponentialRampToValueAtTime(0.001, this.context.currentTime + 0.22);
-    oscillator.connect(cueGain).connect(this.gain);
-    oscillator.start();
-    oscillator.stop(this.context.currentTime + 0.24);
+    this.playSfx(type === "evidence" ? "evidence" : "investigate", type === "evidence" ? 0.95 : 0.75);
   },
   testimonySting() {
-    if (!this.context || state.muted || state.volume === 0) return;
-    const now = this.context.currentTime;
-    const master = this.context.createGain();
-    master.gain.setValueAtTime(0.0001, now);
-    master.gain.exponentialRampToValueAtTime(0.52, now + 0.035);
-    master.gain.setValueAtTime(0.52, now + 0.34);
-    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.92);
-    master.connect(this.gain);
-
-    [146.83, 220, 293.66].forEach((frequency, index) => {
-      const tone = this.context.createOscillator();
-      const toneGain = this.context.createGain();
-      tone.type = index === 0 ? "sawtooth" : "triangle";
-      tone.frequency.setValueAtTime(frequency, now);
-      tone.frequency.exponentialRampToValueAtTime(frequency * 1.5, now + 0.38);
-      toneGain.gain.value = index === 0 ? 0.32 : 0.2;
-      tone.connect(toneGain).connect(master);
-      tone.start(now + index * 0.045);
-      tone.stop(now + 0.94);
-    });
-
-    const hit = this.context.createOscillator();
-    const hitGain = this.context.createGain();
-    hit.type = "sine";
-    hit.frequency.setValueAtTime(92, now);
-    hit.frequency.exponentialRampToValueAtTime(46, now + 0.42);
-    hitGain.gain.setValueAtTime(0.0001, now);
-    hitGain.gain.exponentialRampToValueAtTime(0.7, now + 0.018);
-    hitGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
-    hit.connect(hitGain).connect(master);
-    hit.start(now);
-    hit.stop(now + 0.5);
+    this.playSfx("testimony", 1);
   },
 };
 
@@ -307,6 +283,7 @@ function setHud(title, subtitle = "", visible = true) {
 }
 
 function setStage(screen, background, markup = "") {
+  if (background) preloadBackground(background, "high");
   els.stage.className = `stage stage-${screen}`;
   els.stage.style.setProperty("--scene-bg", background ? `url("${background}")` : "none");
   els.stage.innerHTML = `${markup}<div id="character-layer" class="character-layer" aria-hidden="true"></div>`;
@@ -566,9 +543,12 @@ function renderStart() {
       <button id="start-game" class="cover-button" type="button">接起电话 <i class="ph ph-arrow-right"></i></button>
     </section>
     <div class="sound-state"><i class="ph ph-speaker-high"></i> 点击进入后播放背景音乐与剧情音效 · 可在设置中关闭</div>`);
+  preloadBackground(backgrounds.phone, "high");
   document.querySelector("#start-game").addEventListener("click", () => {
     audio.init();
-    scheduleEvidencePreload();
+    scheduleBackgroundPreload();
+    window.setTimeout(scheduleCharacterPreload, 450);
+    window.setTimeout(scheduleEvidencePreload, 1800);
     startOpening();
   });
 }
@@ -619,7 +599,7 @@ function renderTitleReveal() {
     <section class="title-copy">
       <p>凌晨 04:46</p>
       <h1>南桥路宠物医院</h1>
-      <button id="enter-case" class="cover-button" type="button">进入 <i class="ph ph-arrow-right"></i></button>
+      <button id="enter-case" class="cover-button" type="button">进入医院 <i class="ph ph-arrow-right"></i></button>
     </section>`);
   document.querySelector("#enter-case").addEventListener("click", renderArrivalOutside);
 }
@@ -671,7 +651,7 @@ function renderQinHub() {
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
     </div>
     <div id="topic-list" class="topic-list" aria-label="询问话题"><p class="topic-list-label">选择询问话题</p></div>
-    <button id="finish-qin" class="finish-button" type="button" disabled>结束询问</button>`);
+    <button id="finish-qin" class="finish-button" type="button" disabled>完成询问</button>`);
 
   const list = document.querySelector("#topic-list");
   data.qinTopics.forEach((topic, index) => {
@@ -716,7 +696,7 @@ function renderSearchIntro() {
     <section class="search-briefing">
       <p>现场</p>
       <h1>第二诊室</h1>
-      <button id="begin-search" class="primary-button" type="button">进入现场 <i class="ph ph-arrow-right"></i></button>
+      <button id="begin-search" class="primary-button" type="button">进入第二诊室 <i class="ph ph-arrow-right"></i></button>
     </section>`);
   document.querySelector("#begin-search").addEventListener("click", enterSecondConsultation);
 }
@@ -732,7 +712,7 @@ function renderSearch() {
       </div>
     </div>
     <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击可疑位置</span></p>
-    <button id="leave-search" class="leave-button" type="button" ${requiredFound < 3 ? "disabled" : ""}>离开现场</button>`);
+    <button id="leave-search" class="leave-button" type="button" ${requiredFound < 3 ? "disabled" : ""}>完成调查</button>`);
 
   setupInteractionScroll("search");
 
@@ -785,7 +765,7 @@ function renderPeopleSelection() {
       </div>
     </div>
     <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击人物进行询问</span></p>
-    <button id="finish-first-round" class="finish-button round-finish" type="button" ${state.witnessesDone.size < 3 ? "disabled" : ""}>结束第一轮询问</button>`);
+    <button id="finish-first-round" class="finish-button round-finish" type="button" ${state.witnessesDone.size < 3 ? "disabled" : ""}>完成第一轮询问</button>`);
   setupInteractionScroll("suspects");
   document.querySelectorAll("[data-witness]").forEach((button) => {
     button.addEventListener("click", () => openWitness(button.dataset.witness));
@@ -830,7 +810,7 @@ function renderWitnessHub(key) {
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
     </div>
     <div id="topic-list" class="topic-list" aria-label="询问话题"><p class="topic-list-label">选择询问话题</p></div>
-    <button id="finish-witness" class="finish-button" type="button" ${completedTopics.size < witness.topics.length ? "disabled" : ""}>结束询问</button>`);
+    <button id="finish-witness" class="finish-button" type="button" ${completedTopics.size < witness.topics.length ? "disabled" : ""}>完成询问</button>`);
 
   const list = document.querySelector("#topic-list");
   witness.topics.forEach((topic, index) => {
@@ -878,7 +858,7 @@ function renderChapterEnd() {
       <p>第一轮询问完成</p>
       <h1>下一地点：隔离间</h1>
       <span>三人的陈述已记入对话记录。接下来，需要检查旺旺曾经接受治疗的隔离间。</span>
-      <button id="enter-isolation" class="primary-button" type="button">前往隔离间 <i class="ph ph-arrow-right"></i></button>
+      <button id="enter-isolation" class="primary-button" type="button">进入隔离间 <i class="ph ph-arrow-right"></i></button>
     </section>`);
   document.querySelector("#enter-isolation").addEventListener("click", renderIsolationArrival);
 }
@@ -945,7 +925,7 @@ function renderSecondLinHub() {
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
     </div>
     <div id="topic-list" class="topic-list" aria-label="再次询问话题"><p class="topic-list-label">选择询问话题</p></div>
-    <button id="finish-second-lin" class="finish-button" type="button" ${completed.size < data.secondLinTopics.length ? "disabled" : ""}>结束询问</button>`);
+    <button id="finish-second-lin" class="finish-button" type="button" ${completed.size < data.secondLinTopics.length ? "disabled" : ""}>完成询问</button>`);
 
   const list = document.querySelector("#topic-list");
   data.secondLinTopics.forEach((topic, index) => {
@@ -1276,6 +1256,15 @@ function openSettingsModal() {
     <div class="settings-panel">
       <section><div><h3>声音</h3><p>背景音乐、来电、开关门与证物提示</p></div><div class="segmented" id="sound-options"><button data-sound="on" type="button">开启</button><button data-sound="off" type="button">关闭</button></div></section>
       <section><div><h3>音量</h3><p id="volume-label">${state.volume}%</p></div><input id="volume-range" type="range" min="0" max="100" value="${state.volume}" aria-label="音量"></section>
+      <section class="audio-test-setting"><div><h3>音效试听</h3><p>检查剧情音效是否正常播放</p></div><div class="audio-test-options">
+        <button data-test-sfx="advance" type="button"><i class="ph ph-play"></i>咚声</button>
+        <button data-test-sfx="door" type="button"><i class="ph ph-play"></i>开关门</button>
+        <button data-test-sfx="investigate" type="button"><i class="ph ph-play"></i>调查</button>
+        <button data-test-sfx="evidence" type="button"><i class="ph ph-play"></i>证物</button>
+      </div></section>
+      <section class="bgm-setting"><div><h3>质疑 BGM</h3><p>点击即可试听并选用；关闭设置后恢复当前剧情音乐</p></div><div class="bgm-options">
+        ${Object.entries(audio.testimonyTracks).map(([key, track]) => `<button data-testimony-bgm="${key}" type="button"><i class="ph ph-play"></i><span><b>${track.name}</b><small>${track.note}</small></span></button>`).join("")}
+      </div></section>
       <section><div><h3>文字速度</h3><p>控制台词出现速度</p></div><div class="segmented" id="speed-options"><button data-speed="instant" type="button">即时</button><button data-speed="medium" type="button">适中</button><button data-speed="slow" type="button">缓慢</button></div></section>
       <section><div><h3>字体大小</h3><p>调整对话与界面文字</p></div><div class="segmented" id="font-options"><button data-font="small" type="button">较小</button><button data-font="medium" type="button">标准</button><button data-font="large" type="button">较大</button></div></section>
     </div>`;
@@ -1283,6 +1272,7 @@ function openSettingsModal() {
     document.querySelectorAll("[data-speed]").forEach((button) => button.classList.toggle("active", button.dataset.speed === state.textSpeed));
     document.querySelectorAll("[data-font]").forEach((button) => button.classList.toggle("active", button.dataset.font === state.fontSize));
     document.querySelectorAll("[data-sound]").forEach((button) => button.classList.toggle("active", (button.dataset.sound === "off") === state.muted));
+    document.querySelectorAll("[data-testimony-bgm]").forEach((button) => button.classList.toggle("active", button.dataset.testimonyBgm === state.testimonyBgm));
   };
   sync();
   document.querySelectorAll("[data-sound]").forEach((button) => button.addEventListener("click", () => {
@@ -1300,6 +1290,15 @@ function openSettingsModal() {
     document.querySelector("#volume-label").textContent = `${state.volume}%`;
     audio.update();
   });
+  document.querySelectorAll("[data-test-sfx]").forEach((button) => button.addEventListener("click", () => {
+    audio.init();
+    audio.playSfx(button.dataset.testSfx, button.dataset.testSfx === "advance" ? 0.45 : 0.95);
+  }));
+  document.querySelectorAll("[data-testimony-bgm]").forEach((button) => button.addEventListener("click", () => {
+    audio.init();
+    audio.previewTestimony(button.dataset.testimonyBgm);
+    sync();
+  }));
   document.querySelectorAll("[data-speed]").forEach((button) => button.addEventListener("click", () => {
     state.textSpeed = button.dataset.speed;
     localStorage.setItem("mystery-text-speed", state.textSpeed);
@@ -1321,9 +1320,11 @@ function openModal(title, className) {
 }
 
 function closeModal() {
-  els.modal.classList.add("hidden");
+  const wasSettings = els.modal.classList.contains("settings-modal");
+  els.modal.className = "modal hidden";
   els.modalScrim.classList.add("hidden");
   els.modalBody.innerHTML = "";
+  if (wasSettings) audio.stopPreview();
 }
 
 els.game.dataset.font = state.fontSize;

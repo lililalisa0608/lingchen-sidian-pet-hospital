@@ -264,6 +264,19 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
 .segmented button { min-width: 72px; min-height: 38px; border: 0; border-right: 1px solid var(--line); color: #4f5c58; background: #efeee9; cursor: pointer; }
 .segmented button:last-child { border-right: 0; }
 .segmented button.active { color: #fff; background: var(--green); }
+.audio-test-options { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+.audio-test-options button, .bgm-options button { border: 1px solid var(--line); border-radius: 3px; color: #46534f; background: #efeee9; cursor: pointer; }
+.audio-test-options button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 40px; padding: 0 8px; font-size: 12px; }
+.audio-test-options button:hover, .bgm-options button:hover { border-color: rgba(41,102,88,.58); background: #fff; }
+.bgm-setting { align-items: start !important; }
+.bgm-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+.bgm-options button { display: grid; grid-template-columns: 24px minmax(0,1fr); align-items: center; gap: 7px; min-height: 54px; padding: 8px 10px; text-align: left; }
+.bgm-options button i { color: var(--green-2); font-size: 17px; }
+.bgm-options button span, .bgm-options button b, .bgm-options button small { display: block; }
+.bgm-options button b { font-size: 13px; }
+.bgm-options button small { margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 400; }
+.bgm-options button.active { color: #fff; border-color: var(--green); background: var(--green); }
+.bgm-options button.active i, .bgm-options button.active small { color: rgba(255,255,255,.72); }
 
 /* Character selection reuses the established waiting-room composition. */
 .stage-suspects::before { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(11,25,22,.06), rgba(11,25,22,.2)); }
@@ -346,6 +359,8 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .evidence-detail { border-left: 0; border-top: 1px solid var(--line); }
   .settings-panel section { grid-template-columns: 1fr; gap: 12px; }
   .setting-toggle, .segmented { justify-self: start; }
+  .audio-test-options { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .bgm-options { grid-template-columns: 1fr; }
   .testimony-intro-card { width: calc(100% - 30px); }
   .testimony-intro-card p { gap: 9px; font-size: 9px; letter-spacing: .18em; }
   .testimony-intro-card p span { width: 28px; }
