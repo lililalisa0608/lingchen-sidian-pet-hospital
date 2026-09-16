@@ -72,6 +72,34 @@ final result: passed
 
 ---
 
+## Complete third-act and ending pass
+
+### Implemented scope
+
+- Added the dedicated waiting-room investigation scene with four visually matched hotspots: Su Qing's former seat, the consultation-room entrance, temporary observation cages, and the livestream tablet.
+- Added the three-segment livestream review, two independent evidence images, Milk Candy hair identification, Su Qing's second inquiry, four-stage cross-examination, confession, case ending, ending title, and credits.
+- Preserved the established dialogue, inquiry, evidence, 16:9 investigation, portrait, HUD, settings, and audio templates on both breakpoints.
+
+### Validation evidence
+
+- Desktop 1280 × 720: `qa/final-waiting-search-desktop.png`, `qa/final-flow-desktop.png`, `qa/final-credits-desktop.png`.
+- Mobile 393 × 852: `qa/final-waiting-search-mobile.png`, `qa/final-replay-review-mobile.png`, `qa/final-su-testimony-mobile.png`, `qa/final-flow-mobile.png`, `qa/final-credits-mobile.png`.
+- Automated full-flow replay reached all 11 evidence items, the case-finale card, credits, and restart state on both viewports without a runtime error.
+- Production build and static asset manifest passed with the three new lightweight JPEG assets present in `dist`.
+
+### Findings
+
+- Investigation hotspots remain attached to the 16:9 image coordinate layer and are reachable through horizontal scrolling on mobile.
+- The livestream segment picker remains within the standard bottom interaction footprint and becomes a single column on mobile.
+- Su Qing's testimony preserves the established mobile portrait scale and standard dialogue controls without covering her face or the testimony text.
+- The finale title uses a mobile-specific 34px size so “凌晨四点的宠物医院” remains on one line instead of leaving “院” orphaned.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Standard-dialogue cross-examination pass — 2026-09-16
 
 ### Source visual truth

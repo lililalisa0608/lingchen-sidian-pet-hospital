@@ -33,6 +33,7 @@ const backgrounds = {
   title: "/assets/backgrounds/title-transition-v3.jpg",
   waiting: "/assets/backgrounds/waiting-area-clean-v1.jpg",
   waitingCast: "/assets/backgrounds/waiting-area-cast-v2.jpg",
+  waitingInvestigation: "/assets/backgrounds/waiting-area-investigation-v1.jpg",
   corridor: "/assets/backgrounds/second-consultation-corridor-v1.jpg",
   clinic: "/assets/backgrounds/second-consultation-evidence-v4.jpg",
   consultationClean: "/assets/backgrounds/second-consultation-clean-v1.jpg",
@@ -127,6 +128,9 @@ const state = {
   searchFound: new Set(),
   isolationSearchFound: new Set(),
   secondLinTopicsDone: new Set(),
+  waitingSearchFound: new Set(),
+  liveReplaySegments: new Set(),
+  suFinalTopicsDone: new Set(),
   testimonyPressed: new Set(),
   selectedTestimony: 0,
   dialogueQueue: [],
@@ -146,6 +150,7 @@ const state = {
     search: null,
     suspects: null,
     isolation: null,
+    waitingInvestigation: null,
   },
 };
 
@@ -298,6 +303,7 @@ function resetPanels() {
   els.dialogue.classList.add("hidden");
   els.game.classList.remove("dialogue-active");
   els.choices.classList.add("hidden");
+  els.choices.classList.remove("replay-choice-panel");
   els.overlay.classList.add("hidden");
   els.overlay.innerHTML = "";
   closeModal();
@@ -488,6 +494,14 @@ function getEvidenceItem(key) {
       updated: true,
     };
   }
+  if (key === "hair" && state.facts.has("hair-identified")) {
+    return {
+      ...item,
+      name: "奶糖的猫毛",
+      description: "夹在器械架新形成的变形缝中的白色猫毛，经鉴定属于奶糖；毛发位于撞击后向内折叠的金属夹层里。",
+      updated: true,
+    };
+  }
   if (key !== "injury" || !state.facts.has("death-time")) return item;
   return {
     ...item,
@@ -564,11 +578,15 @@ function startOpening() {
   state.searchFound.clear();
   state.isolationSearchFound.clear();
   state.secondLinTopicsDone.clear();
+  state.waitingSearchFound.clear();
+  state.liveReplaySegments.clear();
+  state.suFinalTopicsDone.clear();
   state.testimonyPressed.clear();
   state.selectedTestimony = 0;
   state.interactionScroll.search = null;
   state.interactionScroll.suspects = null;
   state.interactionScroll.isolation = null;
+  state.interactionScroll.waitingInvestigation = null;
   state.dialogueHistory = [];
   updateEvidenceCount();
   resetPanels();
@@ -1198,7 +1216,434 @@ function renderSecondRoundEndCard() {
       <p>第二轮结束</p>
       <h1>真正的作案时间</h1>
       <span>贺川在03:42仍然活着；致命撞击发生于03:42—03:46。唐宁和林夏在这四分钟里始终出现在隔离间录像中。</span>
-      <button id="restart-game" class="primary-button" type="button">重新体验 <i class="ph ph-arrow-counter-clockwise"></i></button>
+      <button id="enter-waiting-investigation" class="primary-button" type="button">进入等候区 <i class="ph ph-arrow-right"></i></button>
+    </section>`);
+  document.querySelector("#enter-waiting-investigation").addEventListener("click", renderThirdRoundArrival);
+}
+
+function renderThirdRoundArrival() {
+  resetPanels();
+  audio.setTrack("story");
+  setHud("医院等候区", "第三轮调查", true);
+  setStage("scene scene-transition", backgrounds.waitingInvestigation);
+  audio.door();
+  runDialogue(data.thirdRoundArrival, renderWaitingSearch);
+}
+
+function renderWaitingSearch() {
+  resetPanels();
+  const requiredKeys = Object.entries(data.waitingSearchSpots).filter(([, spot]) => spot.required).map(([key]) => key);
+  const requiredFound = requiredKeys.filter((key) => state.waitingSearchFound.has(key)).length;
+  setHud("医院等候区", requiredFound === requiredKeys.length ? "关键线索已齐" : `调查 ${requiredFound}/${requiredKeys.length}`, true);
+  setStage("search interaction-stage waiting-search", backgrounds.waitingInvestigation, `
+    <div id="interaction-scroll" class="interaction-scroll">
+      <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.waitingInvestigation}')">
+        <div id="hotspots" class="hotspots" aria-label="等候区可调查区域"></div>
+      </div>
+    </div>
+    <p class="interaction-hint"><i class="ph ph-arrows-horizontal"></i><span>左右滑动查看完整场景 · 点击可疑位置</span></p>
+    <button id="leave-waiting-search" class="leave-button" type="button" ${requiredFound < requiredKeys.length ? "disabled" : ""}>完成调查</button>`);
+
+  setupInteractionScroll("waitingInvestigation");
+  const spots = document.querySelector("#hotspots");
+  spots.addEventListener("pointermove", () => spots.classList.add("armed"), { once: true });
+  Object.entries(data.waitingSearchSpots).forEach(([key, spot]) => {
+    if (state.waitingSearchFound.has(key)) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `hotspot ${spot.className}`;
+    button.setAttribute("aria-label", `调查${spot.label}`);
+    button.innerHTML = `<span>调查 · ${spot.label}</span>`;
+    button.addEventListener("click", () => inspectWaitingSpot(key, spot));
+    spots.append(button);
+  });
+  document.querySelector("#leave-waiting-search").addEventListener("click", () => {
+    if (requiredFound < requiredKeys.length) return;
+    renderCatHairAnalysis();
+  });
+}
+
+function inspectWaitingSpot(key, spot) {
+  if (spot.review) {
+    renderLiveReplayReview();
+    return;
+  }
+  runDialogue(spot.lines, () => {
+    state.waitingSearchFound.add(key);
+    if (spot.evidence) addEvidence(spot.evidence, renderWaitingSearch);
+    else renderWaitingSearch();
+  });
+}
+
+function renderLiveReplayReview() {
+  resetPanels();
+  const completed = state.liveReplaySegments;
+  setHud("查看直播回放", `${completed.size}/${data.liveReplaySegments.length}`, true);
+  setStage("scene", backgrounds.waitingInvestigation);
+  els.choices.classList.add("replay-choice-panel");
+  els.choices.innerHTML = `
+    <header class="replay-choice-head"><small>完整直播录像</small><h2>选择时间段查看</h2></header>
+    <div class="replay-choice-list">
+      ${data.liveReplaySegments.map((segment) => `<button data-replay-segment="${segment.id}" class="choice-button${completed.has(segment.id) ? " complete" : ""}" type="button"><span>${segment.label}</span><i class="ph ${completed.has(segment.id) ? "ph-check" : "ph-play"}"></i></button>`).join("")}
+    </div>
+    <button id="finish-replay-review" class="replay-finish" type="button" ${completed.size < data.liveReplaySegments.length ? "disabled" : ""}>完成查看</button>`;
+  els.choices.classList.remove("hidden");
+  document.querySelectorAll("[data-replay-segment]").forEach((button) => button.addEventListener("click", () => {
+    const segment = data.liveReplaySegments.find((item) => item.id === button.dataset.replaySegment);
+    els.choices.classList.add("hidden");
+    runDialogue(segment.lines, () => {
+      const wasComplete = completed.has(segment.id);
+      completed.add(segment.id);
+      if (!wasComplete) audio.cue();
+      renderLiveReplayReview();
+    });
+  }));
+  document.querySelector("#finish-replay-review").addEventListener("click", () => {
+    if (completed.size < data.liveReplaySegments.length) return;
+    state.waitingSearchFound.add("livestream");
+    addEvidence("liveReplay", renderWaitingSearch);
+  });
+}
+
+function renderCatHairAnalysis() {
+  resetPanels();
+  setHud("医院等候区", "猫毛鉴定", true);
+  setStage("scene scene-transition", backgrounds.waitingInvestigation);
+  runDialogue(data.catHairAnalysis, () => {
+    state.facts.add("hair-identified");
+    showToast("《白色猫毛》已更新为《奶糖的猫毛》");
+    renderSuFinalHub();
+  });
+}
+
+function renderSuFinalHub() {
+  resetPanels();
+  const completed = state.suFinalTopicsDone;
+  setHud("再次询问苏青", `${completed.size}/${data.suFinalTopics.length}`, true);
+  setStage("topic witness-topic", backgrounds.waiting, `
+    <div class="topic-focus"></div>
+    <div class="topic-person witness-person witness-su" style="--portrait-sheet:url('${data.characters.su.frames[0]}')" aria-label="苏青"></div>
+    <div class="topic-connectors" aria-hidden="true">
+      <i class="connector connector-1"></i><i class="connector connector-2"></i>
+      <i class="connector connector-3"></i><i class="connector connector-4"></i>
+    </div>
+    <div id="topic-list" class="topic-list" aria-label="再次询问话题"><p class="topic-list-label">选择询问话题</p></div>
+    <button id="finish-su-final" class="finish-button" type="button" ${completed.size < data.suFinalTopics.length ? "disabled" : ""}>完成询问</button>`);
+
+  const list = document.querySelector("#topic-list");
+  data.suFinalTopics.forEach((topic, index) => {
+    const complete = completed.has(topic.id);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `topic-button topic-${index + 1}${complete ? " complete" : ""}`;
+    button.innerHTML = `<span>${topic.label}</span><i class="ph ${complete ? "ph-check" : "ph-plus"}"></i>`;
+    button.addEventListener("click", () => {
+      resetPanels();
+      setHud("再次询问苏青", topic.label, true);
+      setStage("scene", backgrounds.waiting);
+      runDialogue(topic.lines, () => {
+        const wasComplete = completed.has(topic.id);
+        completed.add(topic.id);
+        if (!wasComplete) audio.cue();
+        renderSuFinalHub();
+      });
+    });
+    list.append(button);
+  });
+
+  document.querySelector("#finish-su-final").addEventListener("click", () => {
+    if (completed.size < data.suFinalTopics.length) return;
+    resetPanels();
+    setHud("对质苏青", "安静的直播", true);
+    setStage("scene", backgrounds.waiting);
+    runDialogue(data.suFinalInquiryEnding, () => renderSuTestimonyIntro("安静的直播", "逐句核验苏青的不在场证明", startSuQuietPhase));
+  });
+}
+
+function renderSuTestimonyIntro(title, detail, onEnter) {
+  resetPanels();
+  audio.setTrack("testimony");
+  setHud("对质苏青", "证言质疑", true);
+  setStage("testimony-intro", backgrounds.waiting, `
+    <div class="testimony-intro-scrim"></div>
+    <section class="testimony-intro-card" aria-label="进入证言质疑">
+      <p><span></span>CROSS-EXAMINATION<span></span></p>
+      <h1>${title}</h1>
+      <strong>${detail}</strong>
+      <button id="enter-su-testimony" type="button">进入质疑 <i class="ph ph-arrow-right"></i></button>
+    </section>`);
+  audio.testimonySting();
+  let entered = false;
+  const enter = () => {
+    if (entered) return;
+    entered = true;
+    if (state.testimonyIntroTimer) window.clearTimeout(state.testimonyIntroTimer);
+    state.testimonyIntroTimer = null;
+    onEnter();
+  };
+  document.querySelector("#enter-su-testimony").addEventListener("click", enter);
+  state.testimonyIntroTimer = window.setTimeout(enter, 1800);
+}
+
+function openSuTestimony(statements, subtitle, onChallenge) {
+  state.selectedTestimony = 0;
+  state.testimonyPressed.clear();
+  renderSuTestimony(statements, subtitle, onChallenge);
+}
+
+function renderSuTestimony(statements, subtitle, onChallenge) {
+  resetPanels();
+  audio.setTrack("testimony");
+  const index = state.selectedTestimony;
+  const statement = statements[index];
+  const total = statements.length;
+  const isPressed = state.testimonyPressed.has(index);
+  setHud("对质苏青", `${subtitle} · 切换证言 · 追问 / 质疑`, true);
+  setStage("testimony-dialogue", backgrounds.waiting);
+  showSpeakerPortrait("苏青", statement.text, 1);
+  els.dialogue.classList.add("testimony-mode");
+  els.dialogue.classList.remove("hidden", "narration");
+  els.game.classList.add("dialogue-active");
+  els.speaker.classList.remove("hidden");
+  els.speaker.innerHTML = `<span>苏青</span><small>证言 ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")} · ${isPressed ? "已追问" : "尚未追问"}</small>`;
+  clearTyping();
+  state.fullLine = statement.text;
+  els.text.textContent = statement.text;
+  els.advance.classList.add("hidden");
+  els.dialogue.insertAdjacentHTML("beforeend", `
+    <div class="testimony-dialogue-tools" aria-label="证言操作">
+      <div class="testimony-dialogue-nav">
+        <button id="previous-testimony" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
+        <div class="testimony-dialogue-progress" aria-label="证言进度">${statements.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
+        <button id="next-testimony" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
+      </div>
+      <div class="testimony-dialogue-actions">
+        <button id="press-testimony" class="press" type="button"><i class="ph ph-chat-circle-dots"></i><span><small>PRESS</small>追问</span></button>
+        <button id="challenge-testimony" class="challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
+      </div>
+    </div>`);
+
+  const changeStatement = (offset) => {
+    state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
+    audio.cue();
+    renderSuTestimony(statements, subtitle, onChallenge);
+  };
+  document.querySelector("#previous-testimony").addEventListener("click", () => changeStatement(-1));
+  document.querySelector("#next-testimony").addEventListener("click", () => changeStatement(1));
+  document.querySelector("#press-testimony").addEventListener("click", () => {
+    state.testimonyPressed.add(state.selectedTestimony);
+    setStage("scene", backgrounds.waiting);
+    runDialogue(statement.press, () => renderSuTestimony(statements, subtitle, onChallenge));
+  });
+  document.querySelector("#challenge-testimony").addEventListener("click", onChallenge);
+  let startX = 0;
+  els.text.addEventListener("pointerdown", (event) => {
+    startX = event.clientX;
+    els.text.setPointerCapture?.(event.pointerId);
+  }, { once: true });
+  els.text.addEventListener("pointerup", (event) => {
+    const distance = event.clientX - startX;
+    if (Math.abs(distance) > 46) changeStatement(distance > 0 ? -1 : 1);
+  }, { once: true });
+}
+
+function startSuQuietPhase() {
+  openSuTestimony(data.suTestimonyQuiet, "安静的直播", challengeSuQuietPhase);
+}
+
+function challengeSuQuietPhase() {
+  const selectedStatement = state.selectedTestimony;
+  askEvidence(
+    "哪件证物与这句证言矛盾？",
+    "rack",
+    () => {
+      if (selectedStatement !== 1) {
+        runDialogue([["许知衡（心声）", "这件证物还不能直接推翻当前这句证言。需要先击破‘医院一直很安静’。"]], () => renderSuTestimony(data.suTestimonyQuiet, "安静的直播", challengeSuQuietPhase));
+        return;
+      }
+      setStage("scene", backgrounds.waiting);
+      runDialogue(data.quietRackReveal, askWaitingLocationEvidence);
+    },
+    "如果案发时发生过足够大的撞击，医院就不可能始终安静。",
+    () => renderSuTestimony(data.suTestimonyQuiet, "安静的直播", challengeSuQuietPhase),
+  );
+}
+
+function askWaitingLocationEvidence() {
+  askEvidence(
+    "哪件证物能够说明唐宁听不到，但苏青可以听到？",
+    "floorplan",
+    () => {
+      setStage("scene", backgrounds.waiting);
+      runDialogue(data.floorplanReveal, askAnimalReactionEvidence);
+    },
+    "需要确认等候区、第二诊室和隔离间之间的位置关系。",
+  );
+}
+
+function askAnimalReactionEvidence() {
+  askEvidence(
+    "即使苏青本人没有留意，什么能够证明等候区仍会出现异常？",
+    "observationReaction",
+    () => {
+      setStage("scene", backgrounds.waiting);
+      runDialogue(data.animalReactionReveal, startSuRealtimePhase);
+    },
+    "还需要一个不依赖苏青主观注意力的现场反应。",
+  );
+}
+
+function startSuRealtimePhase() {
+  state.facts.delete("replay-capability-solved");
+  openSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase);
+}
+
+function challengeSuRealtimePhase() {
+  if (!state.facts.has("replay-capability-solved")) {
+    renderReplayCapabilityChoices();
+    return;
+  }
+  if (state.selectedTestimony !== 3) {
+    setStage("scene", backgrounds.waiting);
+    runDialogue([["许知衡（心声）", "现在需要解释的不是苏青有没有出现在画面里，而是整段画面是否属于当时。"]], () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase));
+    return;
+  }
+  setStage("scene", backgrounds.waiting);
+  runDialogue(data.fakeRealtimeReveal, () => {
+    runDialogue(data.suBackupAdmission, () => renderSuTestimonyIntro("镜头之外", "备用画面遮住了谁的行动", startSuOffCameraPhase));
+  });
+}
+
+function renderReplayCapabilityChoices() {
+  clearTestimonyInterface();
+  els.dialogue.classList.add("hidden");
+  els.game.classList.remove("dialogue-active");
+  showChoices([
+    { label: "03:10—03:20，直播刚开始的片段。", action: wrongReplayCapabilityChoice },
+    { label: "03:42—03:46，医院保持安静的片段。", action: wrongReplayCapabilityChoice },
+    {
+      label: "03:51以后，唐宁呼喊的片段。",
+      action: () => {
+        els.choices.classList.add("hidden");
+        setStage("scene", backgrounds.waiting);
+        runDialogue(data.replayCapabilityReveal, () => {
+          state.facts.add("replay-capability-solved");
+          openSuTestimony(data.suTestimonyRealtime, "选择矛盾证言", challengeSuRealtimePhase);
+        });
+      },
+    },
+  ]);
+}
+
+function wrongReplayCapabilityChoice() {
+  els.choices.classList.add("hidden");
+  setStage("scene", backgrounds.waiting);
+  runDialogue([["许知衡", "这一段还不能证明第二诊室的声音能够被直播录到。"]], renderReplayCapabilityChoices);
+}
+
+function startSuOffCameraPhase() {
+  openSuTestimony(data.suTestimonyOffCamera, "镜头之外", challengeSuOffCameraPhase);
+}
+
+function challengeSuOffCameraPhase() {
+  const selectedStatement = state.selectedTestimony;
+  askEvidence(
+    "哪件证物能证明奶糖进入过第二诊室？",
+    "hair",
+    () => {
+      if (selectedStatement !== 2) {
+        runDialogue([["许知衡（心声）", "这件证物应该用来质疑奶糖是否始终留在等候区。"]], () => renderSuTestimony(data.suTestimonyOffCamera, "镜头之外", challengeSuOffCameraPhase));
+        return;
+      }
+      setStage("scene", backgrounds.waiting);
+      runDialogue(data.catHairReveal, startSuCollisionPhase);
+    },
+    "需要能直接联系奶糖与第二诊室现场的证物。",
+    () => renderSuTestimony(data.suTestimonyOffCamera, "镜头之外", challengeSuOffCameraPhase),
+  );
+}
+
+function startSuCollisionPhase() {
+  openSuTestimony(data.suTestimonyCollision, "撞击发生以前", renderCollisionTimingChoices);
+}
+
+function renderCollisionTimingChoices() {
+  clearTestimonyInterface();
+  els.dialogue.classList.add("hidden");
+  els.game.classList.remove("dialogue-active");
+  showChoices([
+    {
+      label: "奶糖的毛被夹在器械架新形成的变形缝里。",
+      action: () => {
+        els.choices.classList.add("hidden");
+        setStage("scene", backgrounds.waiting);
+        runDialogue(data.collisionLockReveal, () => {
+          runDialogue(data.motiveIntro, askSuMotiveEvidence);
+        });
+      },
+    },
+    { label: "苏青的直播在03:48左右恢复了实时内容。", action: wrongCollisionTimingChoice },
+    { label: "第二诊室没有外人闯入的迹象。", action: wrongCollisionTimingChoice },
+  ]);
+}
+
+function wrongCollisionTimingChoice() {
+  els.choices.classList.add("hidden");
+  setStage("scene", backgrounds.waiting);
+  runDialogue([["许知衡", "这还不能直接说明她离开诊室时，撞击是否已经发生。"]], renderCollisionTimingChoices);
+}
+
+function askSuMotiveEvidence() {
+  askEvidence(
+    "哪件证物能够证明苏青存在动机？",
+    "reports",
+    () => {
+      setStage("scene", backgrounds.waiting);
+      runDialogue(data.confession, renderCaseEnding);
+    },
+    "需要指出苏青必须隐瞒的明确动机。",
+  );
+}
+
+function renderCaseEnding() {
+  resetPanels();
+  audio.setTrack("story");
+  setHud("案件结束", "清晨", true);
+  setStage("scene scene-transition", backgrounds.waitingInvestigation);
+  runDialogue(data.caseEnding, renderCaseSolvedCard);
+}
+
+function renderCaseSolvedCard() {
+  resetPanels();
+  setHud("案件结束", "真相已查明", true);
+  setStage("search-intro chapter-end case-finale", backgrounds.waitingInvestigation, `
+    <section class="search-briefing chapter-end-copy finale-copy">
+      <p>案件终结</p>
+      <h1>凌晨四点的宠物医院</h1>
+      <span>完整直播遮住了四分钟的空白，却没有遮住现场留下的声音、反应与猫毛。</span>
+      <strong>完</strong>
+      <button id="show-credits" class="primary-button" type="button">查看片尾 <i class="ph ph-arrow-right"></i></button>
+    </section>`);
+  document.querySelector("#show-credits").addEventListener("click", renderCredits);
+}
+
+function renderCredits() {
+  resetPanels();
+  setHud("片尾", "雨停之后", true);
+  setStage("scene scene-transition", backgrounds.exterior);
+  runDialogue(data.credits, renderFinalCard);
+}
+
+function renderFinalCard() {
+  resetPanels();
+  setHud("", "", false);
+  setStage("cover final-card", backgrounds.exterior, `
+    <div class="cover-scrim"></div>
+    <section class="cover-copy final-card-copy">
+      <p>CASE CLOSED</p>
+      <h1>凌晨四点的<br>宠物医院</h1>
+      <span>感谢体验</span>
+      <button id="restart-game" class="cover-button" type="button">重新体验 <i class="ph ph-arrow-counter-clockwise"></i></button>
     </section>`);
   document.querySelector("#restart-game").addEventListener("click", startOpening);
 }

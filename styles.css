@@ -158,6 +158,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .spot-isolation-table { left: 28%; top: 46%; width: 39%; height: 44%; }
 .spot-isolation-card { left: 84%; top: 52%; width: 10%; height: 25%; }
 .spot-isolation-camera { left: 86%; top: 1%; width: 12%; height: 18%; }
+.spot-waiting-seat { left: 1.5%; top: 43%; width: 23%; height: 35%; }
+.spot-waiting-cages { left: 57%; top: 45%; width: 22%; height: 27%; }
+.spot-waiting-tablet { left: 43.5%; top: 65%; width: 20%; height: 17%; }
+.spot-waiting-door { left: 79%; top: 13%; width: 14%; height: 57%; }
 .leave-button { position: absolute; z-index: 12; right: 26px; bottom: 24px; min-width: 148px; min-height: 44px; border: 1px solid rgba(255,255,255,.78); border-radius: 24px; color: #fff; background: rgba(20,58,49,.9); box-shadow: 0 8px 22px rgba(16,33,29,.18); cursor: pointer; }
 .leave-button:disabled { color: rgba(255,255,255,.72); background: rgba(70,78,75,.68); cursor: not-allowed; }
 
@@ -302,6 +306,18 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
 .chapter-end-copy { width: min(620px, calc(100% - 56px)); }
 .chapter-end-copy span { max-width: 560px; line-height: 1.8; }
 .chapter-end-copy .primary-button { gap: 12px; }
+.finale-copy strong { display: block; margin-top: 17px; color: #d6b574; font: 650 28px "Noto Serif SC", "Songti SC", serif; letter-spacing: .42em; }
+.final-card-copy > span { color: rgba(255,255,255,.75); letter-spacing: .16em; }
+
+.choice-panel.replay-choice-panel { width: min(980px, calc(100% - 48px)); min-height: 250px; padding: 20px; }
+.replay-choice-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 13px; }
+.replay-choice-head small { color: var(--green-2); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+.replay-choice-head h2 { margin: 0; font: 560 22px "Noto Serif SC", "Songti SC", serif; }
+.replay-choice-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.replay-choice-list .choice-button { min-height: 72px; }
+.replay-choice-list .choice-button.complete { color: #61706b; background: rgba(222,229,224,.72); }
+.replay-finish { display: block; min-width: 168px; min-height: 42px; margin: 14px 0 0 auto; border: 1px solid var(--green); border-radius: 3px; color: #fff; background: var(--green); cursor: pointer; }
+.replay-finish:disabled { color: rgba(45,57,53,.46); border-color: rgba(39,62,55,.18); background: rgba(232,234,230,.8); cursor: not-allowed; }
 
 .toast { position: fixed; z-index: 120; left: 50%; top: 24px; transform: translateX(-50%); padding: 10px 17px; border: 1px solid rgba(255,255,255,.65); border-radius: 22px; color: #fff; background: rgba(20,58,49,.94); box-shadow: 0 9px 24px rgba(15,30,26,.25); font-size: 13px; }
 
@@ -338,6 +354,13 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .dialogue-text { font-size: 17px; line-height: 1.66; }
   .advance-button { right: 16px; bottom: 13px; font-size: 11px; }
   .choice-panel { left: 50%; right: auto; top: auto; bottom: 14px; width: calc(100% - 28px); min-height: 205px; transform: translateX(-50%); }
+  .choice-panel.replay-choice-panel { width: calc(100% - 28px); max-height: calc(100dvh - 100px); min-height: 0; padding: 15px; overflow-y: auto; }
+  .finale-copy h1 { font-size: 34px; letter-spacing: 0; }
+  .replay-choice-head { display: block; margin-bottom: 10px; }
+  .replay-choice-head h2 { margin-top: 4px; font-size: 19px; }
+  .replay-choice-list { grid-template-columns: 1fr; gap: 6px; }
+  .replay-choice-list .choice-button { min-height: 47px; }
+  .replay-finish { width: 100%; margin-top: 9px; }
   .choice-button { min-height: 48px; }
   .topic-person { bottom: 12vh; width: 42vh; height: 66vh; }
   .topic-button { width: 42vw; min-height: 66px; padding: 0 12px; font-size: 13px; }
