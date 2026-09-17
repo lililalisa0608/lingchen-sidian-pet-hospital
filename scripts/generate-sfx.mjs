@@ -13,11 +13,6 @@ function sine(frequency, time, phase = 0) {
   return Math.sin(Math.PI * 2 * frequency * time + phase);
 }
 
-function deterministicNoise(index) {
-  const value = Math.sin(index * 12.9898 + 78.233) * 43758.5453;
-  return (value - Math.floor(value)) * 2 - 1;
-}
-
 function render(duration, sampler) {
   const samples = new Float32Array(Math.ceil(duration * sampleRate));
   let peak = 0;
@@ -60,14 +55,6 @@ const sounds = {
     const body = sine(112 - time * 210, time) * Math.exp(-time * 18);
     const tap = sine(720, time) * Math.exp(-time * 42) * 0.22;
     return body + tap;
-  }),
-  "door-open-close.wav": render(0.78, (time, index) => {
-    const scrapeEnvelope = Math.max(0, 1 - time / 0.6);
-    const rawNoise = deterministicNoise(index);
-    const scrape = rawNoise * scrapeEnvelope * 0.28;
-    const thudTime = time - 0.42;
-    const thud = thudTime > 0 ? sine(92 - thudTime * 72, thudTime) * Math.exp(-thudTime * 13) : 0;
-    return scrape + thud * 0.95;
   }),
   "investigation-found.wav": render(0.36, (time) => {
     const first = sine(392, time) * envelope(time, 0.008, 0.3, 0.36) * 0.7;

@@ -72,6 +72,35 @@ final result: passed
 
 ---
 
+## Audio-response, manual testimony entry, and Xu Zhiheng scale pass (2026-09-17)
+
+### Implemented corrections
+
+- Replaced the synthesized door effect with a 2.22-second CC0 field recording of a handled door opening and closing; the in-game door path now points to the recorded MP3.
+- Kept both BGM source files unchanged. Raised the normal story mix from `0.56` to `0.64`, fixed testimony music to “法庭序曲”, and set its mix to `0.66` so the two remain close while testimony stays slightly more prominent.
+- Removed all Settings-panel SFX/BGM preview controls. Master sound, master volume, text speed, and font size remain functional.
+- Preloaded three reusable players for every SFX and stopped constructing a new `Audio` object on each click. Dialogue advance now starts from an already-loaded player.
+- Investigation audio now fires only when a player clicks a scene hotspot. Topic completion, testimony navigation, and replay-segment completion no longer reuse the investigation cue.
+- Removed both 1.8-second testimony auto-entry timers. Tang Ning and Su Qing testimony remain on the transition screen until the player explicitly presses “进入质疑”.
+- Testimony previous/next navigation now updates only the sentence, speaker metadata, progress markers, and portrait expression. It does not rebuild the stage or dialogue component.
+- Reduced Xu Zhiheng uniformly by about 5% while retaining the confirmed anchors: PC `49.5vh × 99vh`, bottom `-9vh`; mobile `39dvh × 78dvh`, bottom `-1.7dvh`. Horizontal anchors are unchanged.
+
+### Verification evidence
+
+- Full end-to-end flow passed at 1280 × 720 and 393 × 852, including both testimony sequences and the final case card.
+- Focused assertion passed: Tang Ning's testimony transition remained visible after 2.2 seconds and did not render the testimony controls until “进入质疑” was clicked.
+- Focused assertion passed: Settings contained no SFX/BGM audition controls.
+- Focused assertion passed: moving to the next testimony sentence preserved the existing dialogue DOM node rather than rerendering it.
+- Xu Zhiheng neutral/alternate dialogue checks: `qa/xu-dialogue-pc.png`, `qa/xu-alt-pc.png`, `qa/xu-dialogue-mobile.png`, and `qa/xu-alt-mobile.png`.
+- Unchanged inquiry-template checks: `qa/topic-pc.png` and `qa/topic-mobile.png`.
+- Production build completed and includes `dist/assets/audio/sfx/door-open-close.mp3`; the old synthesized door WAV is absent from the package.
+
+### Final result
+
+final result: passed
+
+---
+
 ## Testimony-entry blank-screen regression
 
 - Reproduced the reported post-transition state at the Tang Ning cross-examination boundary and hardened both Tang Ning and Su Qing testimony initialization.

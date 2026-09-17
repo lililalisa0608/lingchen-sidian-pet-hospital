@@ -137,14 +137,12 @@ const state = {
   dialogueDone: null,
   dialogueHistory: [],
   typingTimer: null,
-  testimonyIntroTimer: null,
   typingComplete: true,
   fullLine: "",
   textSpeed: localStorage.getItem("mystery-text-speed") || "instant",
   fontSize: localStorage.getItem("mystery-font-size") || "medium",
   volume: Number(localStorage.getItem("mystery-volume") ?? 34),
   muted: localStorage.getItem("mystery-muted") === "true",
-  testimonyBgm: localStorage.getItem("mystery-testimony-bgm") || "courtroom",
   activePortrait: "",
   interactionScroll: {
     search: null,
@@ -164,30 +162,24 @@ const audio = {
   tracks: {
     story: "/assets/audio/clean-soul.m4a",
   },
-  testimonyTracks: {
-    courtroom: { name: "法庭序曲", note: "克制、悬疑", src: "/assets/audio/courtroom-cross-examination.ogg" },
-    jazzy: { name: "爵士交锋", note: "灵巧、戏剧感", src: "/assets/audio/jazzy-cross-examination.ogg" },
-    hope: { name: "管弦追击", note: "明亮、速度感", src: "/assets/audio/hope-cross-examination.ogg" },
-    judgement: { name: "审判时刻", note: "沉重、压迫感", src: "/assets/audio/judgement-cross-examination.ogg" },
-  },
+  testimonyTrack: "/assets/audio/courtroom-cross-examination.ogg",
   sfx: {
     advance: "/assets/audio/sfx/dialogue-thump.wav",
-    door: "/assets/audio/sfx/door-open-close.wav",
+    door: "/assets/audio/sfx/door-open-close.mp3",
     investigate: "/assets/audio/sfx/investigation-found.wav",
     evidence: "/assets/audio/sfx/evidence-acquired.wav",
     phone: "/assets/audio/sfx/phone-ring.wav",
     testimony: "/assets/audio/sfx/cross-examination-sting.wav",
   },
   trackMix: {
-    story: 0.56,
-    testimony: 0.68,
+    story: 0.64,
+    testimony: 0.66,
   },
   currentTrack: "story",
   bgm: null,
-  preview: null,
-  activeSfx: new Set(),
+  sfxPools: new Map(),
   getTrackSource(track = this.currentTrack) {
-    if (track === "testimony") return this.testimonyTracks[state.testimonyBgm]?.src || this.testimonyTracks.courtroom.src;
+    if (track === "testimony") return this.testimonyTrack;
     return this.tracks.story;
   },
   init() {
@@ -196,15 +188,21 @@ const audio = {
       this.bgm.loop = true;
       this.bgm.preload = "auto";
     }
-    Object.values(this.sfx).forEach((src) => {
-      const sound = new Audio(src);
-      sound.preload = "auto";
+    Object.entries(this.sfx).forEach(([name, src]) => {
+      if (this.sfxPools.has(name)) return;
+      const players = Array.from({ length: 3 }, () => {
+        const sound = new Audio(src);
+        sound.preload = "auto";
+        sound.load();
+        return sound;
+      });
+      this.sfxPools.set(name, { players, index: 0 });
     });
     this.update();
     this.startBgm();
   },
   startBgm() {
-    if (!this.bgm || state.muted || state.volume === 0 || this.preview) return;
+    if (!this.bgm || state.muted || state.volume === 0) return;
     this.bgm.play().catch(() => {});
   },
   setTrack(track, force = false) {
@@ -213,7 +211,6 @@ const audio = {
       this.startBgm();
       return;
     }
-    this.stopPreview(false);
     const shouldResume = Boolean(this.bgm && !this.bgm.paused);
     this.bgm?.pause();
     this.currentTrack = track;
@@ -225,42 +222,25 @@ const audio = {
   },
   update() {
     const value = state.muted ? 0 : state.volume / 100;
-    if (this.bgm) this.bgm.volume = Math.min(1, value * (this.trackMix[this.currentTrack] || 0.56));
-    if (this.preview) this.preview.volume = Math.min(1, value * this.trackMix.testimony);
-    this.activeSfx.forEach(({ player, mix }) => { player.volume = Math.min(1, value * mix); });
+    if (this.bgm) this.bgm.volume = Math.min(1, value * (this.trackMix[this.currentTrack] || 0.64));
+    this.sfxPools.forEach(({ players }) => {
+      players.forEach((player) => {
+        player.volume = Math.min(1, value * (player.dataset.mix || 0.8));
+      });
+    });
   },
   playSfx(name, mix = 0.8) {
     if (!this.sfx[name] || state.muted || state.volume === 0) return;
-    const player = new Audio(this.sfx[name]);
-    const active = { player, mix };
-    player.preload = "auto";
+    if (!this.sfxPools.has(name)) this.init();
+    const pool = this.sfxPools.get(name);
+    if (!pool) return;
+    const player = pool.players[pool.index];
+    pool.index = (pool.index + 1) % pool.players.length;
+    player.pause();
+    player.currentTime = 0;
+    player.dataset.mix = String(mix);
     player.volume = Math.min(1, (state.volume / 100) * mix);
-    this.activeSfx.add(active);
-    const release = () => this.activeSfx.delete(active);
-    player.addEventListener("ended", release, { once: true });
-    player.addEventListener("error", release, { once: true });
-    player.play().catch(release);
-  },
-  previewTestimony(trackId) {
-    if (!this.testimonyTracks[trackId]) return;
-    state.testimonyBgm = trackId;
-    localStorage.setItem("mystery-testimony-bgm", trackId);
-    if (this.currentTrack === "testimony") {
-      this.setTrack("testimony", true);
-      return;
-    }
-    this.preview?.pause();
-    this.bgm?.pause();
-    this.preview = new Audio(this.testimonyTracks[trackId].src);
-    this.preview.loop = true;
-    this.preview.preload = "auto";
-    this.update();
-    this.preview.play().catch(() => {});
-  },
-  stopPreview(resume = true) {
-    this.preview?.pause();
-    this.preview = null;
-    if (resume) this.startBgm();
+    player.play().catch(() => {});
   },
   phonePulse() {
     this.playSfx("phone", 0.9);
@@ -298,8 +278,6 @@ function setStage(screen, background, markup = "") {
 function resetPanels() {
   clearTyping();
   clearTestimonyInterface();
-  if (state.testimonyIntroTimer) window.clearTimeout(state.testimonyIntroTimer);
-  state.testimonyIntroTimer = null;
   els.dialogue.classList.add("hidden");
   els.game.classList.remove("dialogue-active");
   els.choices.classList.add("hidden");
@@ -761,6 +739,7 @@ function renderReturnToWaiting() {
 }
 
 function inspectSpot(key, spot) {
+  audio.cue();
   runDialogue(spot.lines, () => {
     state.searchFound.add(key);
     if (spot.evidence) addEvidence(spot.evidence, renderSearch);
@@ -853,9 +832,7 @@ function openWitnessTopic(key, topic) {
   setHud(`询问${witness.name}`, topic.label, true);
   setStage("scene", backgrounds.waiting);
   runDialogue(topic.lines, () => {
-    const wasComplete = state.witnessTopicsDone[key].has(topic.id);
     state.witnessTopicsDone[key].add(topic.id);
-    if (!wasComplete) audio.cue();
     renderWitnessHub(key);
   });
 }
@@ -925,6 +902,7 @@ function renderIsolationSearch() {
 }
 
 function inspectIsolationSpot(key, spot) {
+  audio.cue();
   runDialogue(spot.lines, () => {
     state.isolationSearchFound.add(key);
     addEvidence(spot.evidence, renderIsolationSearch);
@@ -957,9 +935,7 @@ function renderSecondLinHub() {
       setHud("再次询问林夏", topic.label, true);
       setStage("scene", backgrounds.corridor);
       runDialogue(topic.lines, () => {
-        const wasComplete = completed.has(topic.id);
         completed.add(topic.id);
-        if (!wasComplete) audio.cue();
         renderSecondLinHub();
       });
     });
@@ -1007,16 +983,23 @@ function renderTestimonyIntro() {
     </section>`);
   audio.testimonySting();
 
-  let entered = false;
-  const enter = () => {
-    if (entered) return;
-    entered = true;
-    if (state.testimonyIntroTimer) window.clearTimeout(state.testimonyIntroTimer);
-    state.testimonyIntroTimer = null;
-    renderTangTestimony();
-  };
-  document.querySelector("#enter-testimony").addEventListener("click", enter, { once: true });
-  state.testimonyIntroTimer = window.setTimeout(enter, 1800);
+  document.querySelector("#enter-testimony").addEventListener("click", renderTangTestimony, { once: true });
+}
+
+function updateTestimonyStatement(speaker, statements) {
+  const total = statements.length;
+  const index = ((Number(state.selectedTestimony) % total) + total) % total;
+  const statement = statements[index];
+  state.selectedTestimony = index;
+  els.speaker.innerHTML = `<span>${speaker}</span><small>证言 ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")} · ${state.testimonyPressed.has(index) ? "已追问" : "尚未追问"}</small>`;
+  clearTyping();
+  state.fullLine = statement.text;
+  els.text.textContent = statement.text;
+  const progress = els.dialogue.querySelector(".testimony-dialogue-progress");
+  if (progress) {
+    progress.innerHTML = statements.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("");
+  }
+  showSpeakerPortrait(speaker, statement.text, 1);
 }
 
 function renderTangTestimony() {
@@ -1033,24 +1016,18 @@ function renderTangTestimony() {
   const requestedIndex = Number.isFinite(Number(state.selectedTestimony)) ? Number(state.selectedTestimony) : 0;
   const index = ((requestedIndex % total) + total) % total;
   state.selectedTestimony = index;
-  const statement = statements[index] || statements[0];
-  const isPressed = state.testimonyPressed.has(index);
   setHud("对质唐宁", "切换证言 · 追问 / 质疑", true);
   setStage("testimony-dialogue", backgrounds.consultationClean);
   els.dialogue.classList.add("testimony-mode");
   els.dialogue.classList.remove("hidden", "narration");
   els.game.classList.add("dialogue-active");
   els.speaker.classList.remove("hidden");
-  els.speaker.innerHTML = `<span>唐宁</span><small>证言 ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")} · ${isPressed ? "已追问" : "尚未追问"}</small>`;
-  clearTyping();
-  state.fullLine = statement.text;
-  els.text.textContent = statement.text;
   els.advance.classList.add("hidden");
   els.dialogue.insertAdjacentHTML("beforeend", `
     <div class="testimony-dialogue-tools" aria-label="证言操作">
       <div class="testimony-dialogue-nav">
         <button id="previous-testimony" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
-        <div class="testimony-dialogue-progress" aria-label="证言进度">${statements.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
+        <div class="testimony-dialogue-progress" aria-label="证言进度"></div>
         <button id="next-testimony" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
       </div>
       <div class="testimony-dialogue-actions">
@@ -1058,7 +1035,7 @@ function renderTangTestimony() {
         <button id="challenge-testimony" class="challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
       </div>
     </div>`);
-  showSpeakerPortrait("唐宁", statement.text, 1);
+  updateTestimonyStatement("唐宁", statements);
 
   window.requestAnimationFrame(() => {
     const testimonyStageIsActive = els.stage.classList.contains("stage-testimony-dialogue");
@@ -1068,8 +1045,7 @@ function renderTangTestimony() {
 
   const changeStatement = (offset) => {
     state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
-    audio.cue();
-    renderTangTestimony();
+    updateTestimonyStatement("唐宁", statements);
   };
 
   document.querySelector("#previous-testimony").addEventListener("click", () => changeStatement(-1));
@@ -1077,7 +1053,7 @@ function renderTangTestimony() {
   document.querySelector("#press-testimony").addEventListener("click", () => {
     state.testimonyPressed.add(state.selectedTestimony);
     setStage("scene", backgrounds.consultationClean);
-    runDialogue(statement.press, renderTangTestimony);
+    runDialogue(statements[state.selectedTestimony].press, renderTangTestimony);
   });
   document.querySelector("#challenge-testimony").addEventListener("click", presentAgainstTestimony);
 
@@ -1281,6 +1257,7 @@ function renderWaitingSearch() {
 }
 
 function inspectWaitingSpot(key, spot) {
+  audio.cue();
   if (spot.review) {
     renderLiveReplayReview();
     return;
@@ -1309,9 +1286,7 @@ function renderLiveReplayReview() {
     const segment = data.liveReplaySegments.find((item) => item.id === button.dataset.replaySegment);
     els.choices.classList.add("hidden");
     runDialogue(segment.lines, () => {
-      const wasComplete = completed.has(segment.id);
       completed.add(segment.id);
-      if (!wasComplete) audio.cue();
       renderLiveReplayReview();
     });
   }));
@@ -1359,9 +1334,7 @@ function renderSuFinalHub() {
       setHud("再次询问苏青", topic.label, true);
       setStage("scene", backgrounds.waiting);
       runDialogue(topic.lines, () => {
-        const wasComplete = completed.has(topic.id);
         completed.add(topic.id);
-        if (!wasComplete) audio.cue();
         renderSuFinalHub();
       });
     });
@@ -1390,16 +1363,7 @@ function renderSuTestimonyIntro(title, detail, onEnter) {
       <button id="enter-su-testimony" type="button">进入质疑 <i class="ph ph-arrow-right"></i></button>
     </section>`);
   audio.testimonySting();
-  let entered = false;
-  const enter = () => {
-    if (entered) return;
-    entered = true;
-    if (state.testimonyIntroTimer) window.clearTimeout(state.testimonyIntroTimer);
-    state.testimonyIntroTimer = null;
-    onEnter();
-  };
-  document.querySelector("#enter-su-testimony").addEventListener("click", enter, { once: true });
-  state.testimonyIntroTimer = window.setTimeout(enter, 1800);
+  document.querySelector("#enter-su-testimony").addEventListener("click", onEnter, { once: true });
 }
 
 function openSuTestimony(statements, subtitle, onChallenge) {
@@ -1422,24 +1386,18 @@ function renderSuTestimony(statements, subtitle, onChallenge) {
   const requestedIndex = Number.isFinite(Number(state.selectedTestimony)) ? Number(state.selectedTestimony) : 0;
   const index = ((requestedIndex % total) + total) % total;
   state.selectedTestimony = index;
-  const statement = testimonyLines[index] || testimonyLines[0];
-  const isPressed = state.testimonyPressed.has(index);
   setHud("对质苏青", `${subtitle} · 切换证言 · 追问 / 质疑`, true);
   setStage("testimony-dialogue", backgrounds.waiting);
   els.dialogue.classList.add("testimony-mode");
   els.dialogue.classList.remove("hidden", "narration");
   els.game.classList.add("dialogue-active");
   els.speaker.classList.remove("hidden");
-  els.speaker.innerHTML = `<span>苏青</span><small>证言 ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")} · ${isPressed ? "已追问" : "尚未追问"}</small>`;
-  clearTyping();
-  state.fullLine = statement.text;
-  els.text.textContent = statement.text;
   els.advance.classList.add("hidden");
   els.dialogue.insertAdjacentHTML("beforeend", `
     <div class="testimony-dialogue-tools" aria-label="证言操作">
       <div class="testimony-dialogue-nav">
         <button id="previous-testimony" type="button" aria-label="上一句证言"><i class="ph ph-caret-left"></i><span>上一句</span></button>
-        <div class="testimony-dialogue-progress" aria-label="证言进度">${testimonyLines.map((_, dotIndex) => `<span class="${dotIndex === index ? "active" : ""}${state.testimonyPressed.has(dotIndex) ? " pressed" : ""}"></span>`).join("")}</div>
+        <div class="testimony-dialogue-progress" aria-label="证言进度"></div>
         <button id="next-testimony" type="button" aria-label="下一句证言"><span>下一句</span><i class="ph ph-caret-right"></i></button>
       </div>
       <div class="testimony-dialogue-actions">
@@ -1447,7 +1405,7 @@ function renderSuTestimony(statements, subtitle, onChallenge) {
         <button id="challenge-testimony" class="challenge" type="button"><i class="ph ph-warning-octagon"></i><span><small>CHALLENGE</small>质疑</span></button>
       </div>
     </div>`);
-  showSpeakerPortrait("苏青", statement.text, 1);
+  updateTestimonyStatement("苏青", testimonyLines);
 
   window.requestAnimationFrame(() => {
     const testimonyStageIsActive = els.stage.classList.contains("stage-testimony-dialogue");
@@ -1457,15 +1415,14 @@ function renderSuTestimony(statements, subtitle, onChallenge) {
 
   const changeStatement = (offset) => {
     state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
-    audio.cue();
-    renderSuTestimony(statements, subtitle, onChallenge);
+    updateTestimonyStatement("苏青", testimonyLines);
   };
   document.querySelector("#previous-testimony").addEventListener("click", () => changeStatement(-1));
   document.querySelector("#next-testimony").addEventListener("click", () => changeStatement(1));
   document.querySelector("#press-testimony").addEventListener("click", () => {
     state.testimonyPressed.add(state.selectedTestimony);
     setStage("scene", backgrounds.waiting);
-    runDialogue(statement.press, () => renderSuTestimony(statements, subtitle, onChallenge));
+    runDialogue(testimonyLines[state.selectedTestimony].press, () => renderSuTestimony(statements, subtitle, onChallenge));
   });
   document.querySelector("#challenge-testimony").addEventListener("click", onChallenge);
   let startX = 0;
@@ -1733,15 +1690,6 @@ function openSettingsModal() {
     <div class="settings-panel">
       <section><div><h3>声音</h3><p>背景音乐、来电、开关门与证物提示</p></div><div class="segmented" id="sound-options"><button data-sound="on" type="button">开启</button><button data-sound="off" type="button">关闭</button></div></section>
       <section><div><h3>音量</h3><p id="volume-label">${state.volume}%</p></div><input id="volume-range" type="range" min="0" max="100" value="${state.volume}" aria-label="音量"></section>
-      <section class="audio-test-setting"><div><h3>音效试听</h3><p>检查剧情音效是否正常播放</p></div><div class="audio-test-options">
-        <button data-test-sfx="advance" type="button"><i class="ph ph-play"></i>咚声</button>
-        <button data-test-sfx="door" type="button"><i class="ph ph-play"></i>开关门</button>
-        <button data-test-sfx="investigate" type="button"><i class="ph ph-play"></i>调查</button>
-        <button data-test-sfx="evidence" type="button"><i class="ph ph-play"></i>证物</button>
-      </div></section>
-      <section class="bgm-setting"><div><h3>质疑 BGM</h3><p>点击即可试听并选用；关闭设置后恢复当前剧情音乐</p></div><div class="bgm-options">
-        ${Object.entries(audio.testimonyTracks).map(([key, track]) => `<button data-testimony-bgm="${key}" type="button"><i class="ph ph-play"></i><span><b>${track.name}</b><small>${track.note}</small></span></button>`).join("")}
-      </div></section>
       <section><div><h3>文字速度</h3><p>控制台词出现速度</p></div><div class="segmented" id="speed-options"><button data-speed="instant" type="button">即时</button><button data-speed="medium" type="button">适中</button><button data-speed="slow" type="button">缓慢</button></div></section>
       <section><div><h3>字体大小</h3><p>调整对话与界面文字</p></div><div class="segmented" id="font-options"><button data-font="small" type="button">较小</button><button data-font="medium" type="button">标准</button><button data-font="large" type="button">较大</button></div></section>
     </div>`;
@@ -1749,7 +1697,6 @@ function openSettingsModal() {
     document.querySelectorAll("[data-speed]").forEach((button) => button.classList.toggle("active", button.dataset.speed === state.textSpeed));
     document.querySelectorAll("[data-font]").forEach((button) => button.classList.toggle("active", button.dataset.font === state.fontSize));
     document.querySelectorAll("[data-sound]").forEach((button) => button.classList.toggle("active", (button.dataset.sound === "off") === state.muted));
-    document.querySelectorAll("[data-testimony-bgm]").forEach((button) => button.classList.toggle("active", button.dataset.testimonyBgm === state.testimonyBgm));
   };
   sync();
   document.querySelectorAll("[data-sound]").forEach((button) => button.addEventListener("click", () => {
@@ -1767,15 +1714,6 @@ function openSettingsModal() {
     document.querySelector("#volume-label").textContent = `${state.volume}%`;
     audio.update();
   });
-  document.querySelectorAll("[data-test-sfx]").forEach((button) => button.addEventListener("click", () => {
-    audio.init();
-    audio.playSfx(button.dataset.testSfx, button.dataset.testSfx === "advance" ? 0.45 : 0.95);
-  }));
-  document.querySelectorAll("[data-testimony-bgm]").forEach((button) => button.addEventListener("click", () => {
-    audio.init();
-    audio.previewTestimony(button.dataset.testimonyBgm);
-    sync();
-  }));
   document.querySelectorAll("[data-speed]").forEach((button) => button.addEventListener("click", () => {
     state.textSpeed = button.dataset.speed;
     localStorage.setItem("mystery-text-speed", state.textSpeed);
@@ -1797,11 +1735,9 @@ function openModal(title, className) {
 }
 
 function closeModal() {
-  const wasSettings = els.modal.classList.contains("settings-modal");
   els.modal.className = "modal hidden";
   els.modalScrim.classList.add("hidden");
   els.modalBody.innerHTML = "";
-  if (wasSettings) audio.stopPreview();
 }
 
 els.game.dataset.font = state.fontSize;
