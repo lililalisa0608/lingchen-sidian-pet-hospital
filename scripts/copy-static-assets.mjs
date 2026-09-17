@@ -12,7 +12,7 @@ const requiredAssets = [
   "audio/hope-cross-examination.ogg",
   "audio/jazzy-cross-examination.ogg",
   "audio/judgement-cross-examination.ogg",
-  "audio/sfx/cross-examination-sting.wav",
+  "audio/sfx/cross-examination-gavel.wav",
   "audio/sfx/dialogue-thump.wav",
   "audio/sfx/door-open-close.mp3",
   "audio/sfx/evidence-acquired.wav",

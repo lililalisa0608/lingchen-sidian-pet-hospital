@@ -169,14 +169,15 @@ const audio = {
     investigate: "/assets/audio/sfx/investigation-found.wav",
     evidence: "/assets/audio/sfx/evidence-acquired.wav",
     phone: "/assets/audio/sfx/phone-ring.wav",
-    testimony: "/assets/audio/sfx/cross-examination-sting.wav",
+    testimony: "/assets/audio/sfx/cross-examination-gavel.wav",
   },
   trackMix: {
     story: 0.64,
-    testimony: 0.66,
+    testimony: 0.38,
   },
   currentTrack: "story",
   bgm: null,
+  bgmFadeFrame: null,
   sfxPools: new Map(),
   getTrackSource(track = this.currentTrack) {
     if (track === "testimony") return this.testimonyTrack;
@@ -190,7 +191,7 @@ const audio = {
     }
     Object.entries(this.sfx).forEach(([name, src]) => {
       if (this.sfxPools.has(name)) return;
-      const players = Array.from({ length: 3 }, () => {
+      const players = Array.from({ length: 1 }, () => {
         const sound = new Audio(src);
         sound.preload = "auto";
         sound.load();
@@ -212,15 +213,31 @@ const audio = {
       return;
     }
     const shouldResume = Boolean(this.bgm && !this.bgm.paused);
+    if (this.bgmFadeFrame) window.cancelAnimationFrame(this.bgmFadeFrame);
+    this.bgmFadeFrame = null;
     this.bgm?.pause();
     this.currentTrack = track;
     this.bgm = new Audio(this.getTrackSource(track));
     this.bgm.loop = true;
     this.bgm.preload = "auto";
     this.update();
-    if (shouldResume) this.startBgm();
+    if (shouldResume && !state.muted && state.volume > 0) {
+      const targetVolume = this.bgm.volume;
+      const startTime = performance.now();
+      this.bgm.volume = 0;
+      this.bgm.play().catch(() => {});
+      const fade = (time) => {
+        const progress = Math.min(1, (time - startTime) / 720);
+        this.bgm.volume = targetVolume * progress;
+        if (progress < 1) this.bgmFadeFrame = window.requestAnimationFrame(fade);
+        else this.bgmFadeFrame = null;
+      };
+      this.bgmFadeFrame = window.requestAnimationFrame(fade);
+    }
   },
   update() {
+    if (this.bgmFadeFrame) window.cancelAnimationFrame(this.bgmFadeFrame);
+    this.bgmFadeFrame = null;
     const value = state.muted ? 0 : state.volume / 100;
     if (this.bgm) this.bgm.volume = Math.min(1, value * (this.trackMix[this.currentTrack] || 0.64));
     this.sfxPools.forEach(({ players }) => {
@@ -246,7 +263,7 @@ const audio = {
     this.playSfx("phone", 0.9);
   },
   door() {
-    this.playSfx("door", 1);
+    this.playSfx("door", 0.38);
   },
   advance() {
     this.playSfx("advance", 0.45);
@@ -255,7 +272,7 @@ const audio = {
     this.playSfx(type === "evidence" ? "evidence" : "investigate", type === "evidence" ? 0.95 : 0.75);
   },
   testimonySting() {
-    this.playSfx("testimony", 1);
+    this.playSfx("testimony", 0.45);
   },
 };
 
@@ -337,12 +354,13 @@ function showSpeakerPortrait(speaker, text = "", requestedExpression) {
   const layer = document.querySelector("#character-layer");
   if (!layer) return;
   if (els.stage.classList.contains("stage-phone")) {
-    layer.innerHTML = "";
+    layer.querySelector(".speaker-portrait")?.classList.add("hidden");
+    state.activePortrait = "";
     return;
   }
   const character = getCharacter(speaker);
   if (!character) {
-    if (state.activePortrait) layer.innerHTML = "";
+    layer.querySelector(".speaker-portrait")?.classList.add("hidden");
     state.activePortrait = "";
     return;
   }
@@ -354,7 +372,14 @@ function showSpeakerPortrait(speaker, text = "", requestedExpression) {
   const portraitAsset = expressionAsset || character.frames?.[0] || character.expressions;
   const frameClass = character.frames ? " portrait-frame" : "";
   const expressionLabel = character.expressionLabels?.[expression] || `expression-${expression}`;
-  layer.innerHTML = `<div class="speaker-portrait${frameClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}" data-expression="${expressionLabel}" style="--portrait-sheet:url('${portraitAsset}')"></div>`;
+  let portrait = layer.querySelector(".speaker-portrait");
+  if (!portrait) {
+    portrait = document.createElement("div");
+    layer.append(portrait);
+  }
+  portrait.className = `speaker-portrait${frameClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}`;
+  portrait.dataset.expression = expressionLabel;
+  portrait.style.setProperty("--portrait-sheet", `url('${portraitAsset}')`);
 }
 
 function clearTyping() {
@@ -1744,9 +1769,22 @@ els.game.dataset.font = state.fontSize;
 els.game.addEventListener("pointerdown", beginSceneAdvanceGesture);
 els.game.addEventListener("pointerup", finishSceneAdvanceGesture);
 els.game.addEventListener("pointercancel", cancelSceneAdvanceGesture);
-els.advance.addEventListener("click", advanceDialogue);
+els.advance.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary || event.button !== 0) return;
+  event.preventDefault();
+  event.stopPropagation();
+  advanceDialogue();
+});
+els.advance.addEventListener("click", (event) => {
+  if (event.detail === 0) advanceDialogue();
+});
+els.dialogue.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary || event.button !== 0 || event.target.closest("button") || els.dialogue.classList.contains("testimony-mode")) return;
+  event.preventDefault();
+  advanceDialogue();
+});
 els.dialogue.addEventListener("click", (event) => {
-  if (!event.target.closest("button") && !els.dialogue.classList.contains("testimony-mode")) advanceDialogue();
+  if (event.detail === 0 && !event.target.closest("button") && !els.dialogue.classList.contains("testimony-mode")) advanceDialogue();
 });
 els.evidenceButton.addEventListener("click", openEvidenceModal);
 els.recordButton.addEventListener("click", openRecordModal);

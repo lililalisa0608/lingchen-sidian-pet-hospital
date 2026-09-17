@@ -79,16 +79,6 @@ const sounds = {
       return sum + (sine(440, pulseTime) + sine(480, pulseTime)) * env * 0.42;
     }, 0);
   }),
-  "cross-examination-sting.wav": render(1.05, (time) => {
-    const env = envelope(time, 0.025, 0.5, 1.05);
-    const rise = 1 + Math.min(time / 0.42, 1) * 0.5;
-    const chord = [146.83, 220, 293.66].reduce((sum, frequency, index) => {
-      const tone = sine(frequency * rise, time);
-      return sum + tone * (index === 0 ? 0.42 : 0.28);
-    }, 0);
-    const hit = sine(Math.max(46, 92 - time * 105), time) * Math.exp(-time * 7) * 0.8;
-    return chord * env + hit;
-  }),
 };
 
 await mkdir(outputDirectory, { recursive: true });

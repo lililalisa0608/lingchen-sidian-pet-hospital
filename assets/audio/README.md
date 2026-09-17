@@ -30,11 +30,16 @@ The alternative tracks remain in the repository as historical candidates but are
 
 ## Story sound effects
 
-The WAV files in `sfx/` are locally generated, deterministic original effects for dialogue advance, investigation, evidence acquisition, phone ringing, and the cross-examination entry sting. Run `node scripts/generate-sfx.mjs` to reproduce them.
+The generated WAV files in `sfx/` provide dialogue advance, investigation, evidence acquisition, and phone ringing. Run `node scripts/generate-sfx.mjs` to reproduce them.
 
 `sfx/door-open-close.mp3` is the high-quality preview encode of “Door (Opening and Closing)” recorded by Breviceps.
 
 - Source: https://freesound.org/people/Breviceps/sounds/457042/
+- License: Creative Commons 0 / Public Domain
+
+`sfx/cross-examination-gavel.wav` is a short, gently faded excerpt from “Judge Hammer Courtroom” by Moulaythami. It replaces the earlier synthesized cross-examination sting.
+
+- Source: https://freesound.org/people/Moulaythami/sounds/735101/
 - License: Creative Commons 0 / Public Domain
 
 ## Previous / alternative background music

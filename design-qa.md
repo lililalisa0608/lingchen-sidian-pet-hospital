@@ -77,9 +77,9 @@ final result: passed
 ### Implemented corrections
 
 - Replaced the synthesized door effect with a 2.22-second CC0 field recording of a handled door opening and closing; the in-game door path now points to the recorded MP3.
-- Kept both BGM source files unchanged. Raised the normal story mix from `0.56` to `0.64`, fixed testimony music to “法庭序曲”, and set its mix to `0.66` so the two remain close while testimony stays slightly more prominent.
+- Kept both BGM source files unchanged. Normal story mix remains `0.64`; testimony uses “法庭序曲” at `0.38` with a 720 ms fade-in so it no longer starts louder than the story track.
 - Removed all Settings-panel SFX/BGM preview controls. Master sound, master volume, text speed, and font size remain functional.
-- Preloaded three reusable players for every SFX and stopped constructing a new `Audio` object on each click. Dialogue advance now starts from an already-loaded player.
+- Preloaded one reusable player for every SFX and stopped constructing a new `Audio` object on each click. A rapid repeat stops and restarts that player immediately instead of stacking or queuing overlapping sounds.
 - Investigation audio now fires only when a player clicks a scene hotspot. Topic completion, testimony navigation, and replay-segment completion no longer reuse the investigation cue.
 - Removed both 1.8-second testimony auto-entry timers. Tang Ning and Su Qing testimony remain on the transition screen until the player explicitly presses “进入质疑”.
 - Testimony previous/next navigation now updates only the sentence, speaker metadata, progress markers, and portrait expression. It does not rebuild the stage or dialogue component.
@@ -94,6 +94,30 @@ final result: passed
 - Xu Zhiheng neutral/alternate dialogue checks: `qa/xu-dialogue-pc.png`, `qa/xu-alt-pc.png`, `qa/xu-dialogue-mobile.png`, and `qa/xu-alt-mobile.png`.
 - Unchanged inquiry-template checks: `qa/topic-pc.png` and `qa/topic-mobile.png`.
 - Production build completed and includes `dist/assets/audio/sfx/door-open-close.mp3`; the old synthesized door WAV is absent from the package.
+
+### Final result
+
+final result: passed
+
+---
+
+## Rapid-dialogue, audio balance, and witness-height pass (2026-09-17)
+
+### Implemented corrections
+
+- Dialogue advancement now fires on primary `pointerdown` with keyboard/click fallback, so touch and mouse input no longer wait for a delayed synthesized click. The visible portrait node is reused instead of being rebuilt between lines.
+- Door playback was reduced to a `0.38` local mix. Cross-examination music was reduced to `0.38` and fades in over 720 ms.
+- Replaced the former cross-examination entry sting with a short, low-volume wooden gavel recording at a `0.45` local mix.
+- Lowered all three witness dialogue portraits without changing their face scale or horizontal anchors. The resulting height order is Xu Zhiheng > Tang Ning > Lin Xia > Su Qing on both breakpoints.
+- Synchronized the final portrait geometry and audio/input behavior into `PROTOTYPE_UI_CONTRACT.md`.
+
+### Verification evidence
+
+- Automated pointerdown-to-dialogue-update measurement completed in 0.10 ms on the 1280 × 720 run and 0.30 ms on the 393 × 852 run.
+- Unmuted browser replay completed the opening investigation and all three first-round witness entries without a runtime or media-load error.
+- Neutral and alternate expressions were captured for Tang Ning, Lin Xia, and Su Qing at both breakpoints: `qa/portrait-*-desktop.png` and `qa/portrait-*-mobile.png`.
+- Current inquiry/topic layouts were captured for all three witnesses at both breakpoints: `qa/topic-*-desktop.png` and `qa/topic-*-mobile.png`.
+- Visual inspection confirms the dialogue crown order Xu Zhiheng > Tang Ning > Lin Xia > Su Qing; no face is hidden by the HUD or dialogue card.
 
 ### Final result
 
