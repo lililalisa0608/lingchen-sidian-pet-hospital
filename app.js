@@ -1535,7 +1535,7 @@ function challengeSuRealtimePhase() {
     renderReplayCapabilityChoices();
     return;
   }
-  if (state.selectedTestimony !== 3) {
+  if (state.selectedTestimony !== 4) {
     setStage("scene", backgrounds.waiting);
     runDialogue([["许知衡（心声）", "现在需要解释的不是苏青有没有出现在画面里，而是整段画面是否属于当时。"]], () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase));
     return;
