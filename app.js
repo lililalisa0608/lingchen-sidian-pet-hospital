@@ -27,17 +27,17 @@ const els = {
 };
 
 const backgrounds = {
-  cover: "/assets/backgrounds/cover-clinic-interior-v1.jpg",
-  phone: "/assets/backgrounds/opening-phone-v2.jpg",
-  exterior: "/assets/backgrounds/hospital-exterior-v2.jpg",
-  title: "/assets/backgrounds/title-transition-v3.jpg",
-  waiting: "/assets/backgrounds/waiting-area-clean-v1.jpg",
-  waitingCast: "/assets/backgrounds/waiting-area-cast-v2.jpg",
-  waitingInvestigation: "/assets/backgrounds/waiting-area-investigation-v1.jpg",
-  corridor: "/assets/backgrounds/second-consultation-corridor-v1.jpg",
-  clinic: "/assets/backgrounds/second-consultation-evidence-v4.jpg",
-  consultationClean: "/assets/backgrounds/second-consultation-clean-v1.jpg",
-  isolation: "/assets/backgrounds/isolation-room-v1.jpg",
+  cover: "assets/backgrounds/cover-clinic-interior-v1.jpg",
+  phone: "assets/backgrounds/opening-phone-v2.jpg",
+  exterior: "assets/backgrounds/hospital-exterior-v2.jpg",
+  title: "assets/backgrounds/title-transition-v3.jpg",
+  waiting: "assets/backgrounds/waiting-area-clean-v1.jpg",
+  waitingCast: "assets/backgrounds/waiting-area-cast-v2.jpg",
+  waitingInvestigation: "assets/backgrounds/waiting-area-investigation-v1.jpg",
+  corridor: "assets/backgrounds/second-consultation-corridor-v1.jpg",
+  clinic: "assets/backgrounds/second-consultation-evidence-v4.jpg",
+  consultationClean: "assets/backgrounds/second-consultation-clean-v1.jpg",
+  isolation: "assets/backgrounds/isolation-room-v1.jpg",
 };
 
 const backgroundCache = new Map();
@@ -160,16 +160,16 @@ const sceneAdvanceGesture = {
 
 const audio = {
   tracks: {
-    story: "/assets/audio/clean-soul.m4a",
+    story: "assets/audio/clean-soul.m4a",
   },
-  testimonyTrack: "/assets/audio/courtroom-cross-examination.ogg",
+  testimonyTrack: "assets/audio/courtroom-cross-examination.ogg",
   sfx: {
-    advance: "/assets/audio/sfx/dialogue-thump.wav",
-    door: "/assets/audio/sfx/door-open-close.mp3",
-    investigate: "/assets/audio/sfx/investigation-found.wav",
-    evidence: "/assets/audio/sfx/evidence-acquired.wav",
-    phone: "/assets/audio/sfx/phone-ring.wav",
-    testimony: "/assets/audio/sfx/cross-examination-gavel.wav",
+    advance: "assets/audio/sfx/dialogue-thump.wav",
+    door: "assets/audio/sfx/door-open-close.mp3",
+    investigate: "assets/audio/sfx/investigation-found.wav",
+    evidence: "assets/audio/sfx/evidence-acquired.wav",
+    phone: "assets/audio/sfx/phone-ring.wav",
+    testimony: "assets/audio/sfx/cross-examination-gavel.wav",
   },
   trackMix: {
     story: 0.64,
