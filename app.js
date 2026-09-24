@@ -304,6 +304,8 @@ function setStage(screen, background, markup = "") {
 function resetPanels() {
   clearTyping();
   clearTestimonyInterface();
+  state.dialogueQueue = [];
+  state.dialogueDone = null;
   els.dialogue.classList.add("hidden");
   els.game.classList.remove("dialogue-active");
   els.choices.classList.add("hidden");
@@ -311,6 +313,21 @@ function resetPanels() {
   els.overlay.classList.add("hidden");
   els.overlay.innerHTML = "";
   closeModal();
+}
+
+function keepTestimonyInterfaceVisible(renderAgain) {
+  const restore = () => {
+    if (!els.stage.classList.contains("stage-testimony-dialogue")) return;
+    if (!document.querySelector("#next-testimony")) {
+      renderAgain();
+      return;
+    }
+    els.dialogue.classList.remove("hidden", "narration");
+    els.game.classList.add("dialogue-active");
+  };
+
+  window.requestAnimationFrame(restore);
+  window.setTimeout(restore, 120);
 }
 
 function clearTestimonyInterface() {
@@ -1071,11 +1088,7 @@ function renderTangTestimony() {
     </div>`);
   updateTestimonyStatement("唐宁", statements);
 
-  window.requestAnimationFrame(() => {
-    const testimonyStageIsActive = els.stage.classList.contains("stage-testimony-dialogue");
-    const interfaceIsMissing = els.dialogue.classList.contains("hidden") || !document.querySelector("#next-testimony");
-    if (testimonyStageIsActive && interfaceIsMissing) renderTangTestimony();
-  });
+  keepTestimonyInterfaceVisible(renderTangTestimony);
 
   const changeStatement = (offset) => {
     state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
@@ -1441,11 +1454,7 @@ function renderSuTestimony(statements, subtitle, onChallenge) {
     </div>`);
   updateTestimonyStatement("苏青", testimonyLines);
 
-  window.requestAnimationFrame(() => {
-    const testimonyStageIsActive = els.stage.classList.contains("stage-testimony-dialogue");
-    const interfaceIsMissing = els.dialogue.classList.contains("hidden") || !document.querySelector("#next-testimony");
-    if (testimonyStageIsActive && interfaceIsMissing) renderSuTestimony(testimonyLines, subtitle, onChallenge);
-  });
+  keepTestimonyInterfaceVisible(() => renderSuTestimony(testimonyLines, subtitle, onChallenge));
 
   const changeStatement = (offset) => {
     state.selectedTestimony = (state.selectedTestimony + offset + total) % total;
