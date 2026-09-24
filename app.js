@@ -43,6 +43,13 @@ const backgrounds = {
 const backgroundCache = new Map();
 let backgroundPreloadScheduled = false;
 
+// CSS url() values are resolved relative to the emitted stylesheet in dist/assets,
+// so keep the runtime asset path relative to that directory as well. Plain src
+// attributes and Image() calls continue to use document-relative `assets/...` URLs.
+function cssAssetUrl(path) {
+  return path ? `url("../${path}")` : "none";
+}
+
 function preloadBackground(src, priority = "auto") {
   if (backgroundCache.has(src)) return backgroundCache.get(src);
   const image = new Image();
@@ -287,7 +294,7 @@ function setHud(title, subtitle = "", visible = true) {
 function setStage(screen, background, markup = "") {
   if (background) preloadBackground(background, "high");
   els.stage.className = `stage stage-${screen}`;
-  els.stage.style.setProperty("--scene-bg", background ? `url("${background}")` : "none");
+  els.stage.style.setProperty("--scene-bg", cssAssetUrl(background));
   els.stage.innerHTML = `${markup}<div id="character-layer" class="character-layer" aria-hidden="true"></div>`;
   state.activePortrait = "";
 }
@@ -379,7 +386,7 @@ function showSpeakerPortrait(speaker, text = "", requestedExpression) {
   }
   portrait.className = `speaker-portrait${frameClass} portrait-${character.side} portrait-${character.id} expression-${expression} expression-${expressionLabel}`;
   portrait.dataset.expression = expressionLabel;
-  portrait.style.setProperty("--portrait-sheet", `url('${portraitAsset}')`);
+  portrait.style.setProperty("--portrait-sheet", cssAssetUrl(portraitAsset));
 }
 
 function clearTyping() {
@@ -666,7 +673,7 @@ function renderQinHub() {
   setHud("询问秦昭", `${state.qinDone.size}/4`, true);
   setStage("topic", backgrounds.corridor, `
     <div class="topic-focus"></div>
-    <div class="topic-person expression-0" style="--portrait-sheet:url('${data.characters.qin.expressions}')" aria-label="秦昭"></div>
+    <div class="topic-person expression-0" style="--portrait-sheet:${cssAssetUrl(data.characters.qin.expressions)}" aria-label="秦昭"></div>
     <div class="topic-connectors" aria-hidden="true">
       <i class="connector connector-1"></i><i class="connector connector-2"></i>
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
@@ -728,7 +735,7 @@ function renderSearch() {
   setHud("第二诊室", requiredFound === 3 ? "关键证物已齐" : `调查 ${requiredFound}/3`, true);
   setStage("search interaction-stage", backgrounds.clinic, `
     <div id="interaction-scroll" class="interaction-scroll">
-      <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.clinic}')">
+      <div class="interaction-canvas search-canvas" style="--interaction-bg:${cssAssetUrl(backgrounds.clinic)}">
         <div id="hotspots" class="hotspots" aria-label="可调查区域"></div>
       </div>
     </div>
@@ -778,7 +785,7 @@ function renderPeopleSelection() {
   setStage("suspects interaction-stage", backgrounds.waitingCast, `
     <div class="suspect-heading"><h1>先问谁？</h1><p>三个人都在等候区。</p></div>
     <div id="interaction-scroll" class="interaction-scroll">
-      <div class="interaction-canvas suspect-canvas" style="--interaction-bg:url('${backgrounds.waitingCast}')">
+      <div class="interaction-canvas suspect-canvas" style="--interaction-bg:${cssAssetUrl(backgrounds.waitingCast)}">
         <div class="suspect-map">
           ${renderSuspectZone("tang", "suspect-tang")}
           ${renderSuspectZone("su", "suspect-su")}
@@ -826,7 +833,7 @@ function renderWitnessHub(key) {
   setHud(`询问${witness.name}`, `${completedTopics.size}/${witness.topics.length}`, true);
   setStage("topic witness-topic", backgrounds.waiting, `
     <div class="topic-focus"></div>
-    <div class="topic-person witness-person witness-${key}" style="--portrait-sheet:url('${character.frames[0]}')" aria-label="${witness.name}"></div>
+    <div class="topic-person witness-person witness-${key}" style="--portrait-sheet:${cssAssetUrl(character.frames[0])}" aria-label="${witness.name}"></div>
     <div class="topic-connectors" aria-hidden="true">
       <i class="connector connector-1"></i><i class="connector connector-2"></i>
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
@@ -897,7 +904,7 @@ function renderIsolationSearch() {
   setHud("隔离间", requiredFound === 4 ? "关键证物已齐" : `调查 ${requiredFound}/4`, true);
   setStage("search interaction-stage isolation-search", backgrounds.isolation, `
     <div id="interaction-scroll" class="interaction-scroll">
-      <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.isolation}')">
+      <div class="interaction-canvas search-canvas" style="--interaction-bg:${cssAssetUrl(backgrounds.isolation)}">
         <div id="hotspots" class="hotspots" aria-label="隔离间可调查区域"></div>
       </div>
     </div>
@@ -940,7 +947,7 @@ function renderSecondLinHub() {
   setHud("再次询问林夏", `${completed.size}/${data.secondLinTopics.length}`, true);
   setStage("topic witness-topic", backgrounds.corridor, `
     <div class="topic-focus"></div>
-    <div class="topic-person witness-person witness-lin" style="--portrait-sheet:url('${data.characters.lin.frames[0]}')" aria-label="林夏"></div>
+    <div class="topic-person witness-person witness-lin" style="--portrait-sheet:${cssAssetUrl(data.characters.lin.frames[0])}" aria-label="林夏"></div>
     <div class="topic-connectors" aria-hidden="true">
       <i class="connector connector-1"></i><i class="connector connector-2"></i>
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
@@ -1255,7 +1262,7 @@ function renderWaitingSearch() {
   setHud("医院等候区", requiredFound === requiredKeys.length ? "关键线索已齐" : `调查 ${requiredFound}/${requiredKeys.length}`, true);
   setStage("search interaction-stage waiting-search", backgrounds.waitingInvestigation, `
     <div id="interaction-scroll" class="interaction-scroll">
-      <div class="interaction-canvas search-canvas" style="--interaction-bg:url('${backgrounds.waitingInvestigation}')">
+      <div class="interaction-canvas search-canvas" style="--interaction-bg:${cssAssetUrl(backgrounds.waitingInvestigation)}">
         <div id="hotspots" class="hotspots" aria-label="等候区可调查区域"></div>
       </div>
     </div>
@@ -1339,7 +1346,7 @@ function renderSuFinalHub() {
   setHud("再次询问苏青", `${completed.size}/${data.suFinalTopics.length}`, true);
   setStage("topic witness-topic", backgrounds.waiting, `
     <div class="topic-focus"></div>
-    <div class="topic-person witness-person witness-su" style="--portrait-sheet:url('${data.characters.su.frames[0]}')" aria-label="苏青"></div>
+    <div class="topic-person witness-person witness-su" style="--portrait-sheet:${cssAssetUrl(data.characters.su.frames[0])}" aria-label="苏青"></div>
     <div class="topic-connectors" aria-hidden="true">
       <i class="connector connector-1"></i><i class="connector connector-2"></i>
       <i class="connector connector-3"></i><i class="connector connector-4"></i>
