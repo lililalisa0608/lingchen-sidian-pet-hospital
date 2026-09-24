@@ -65,11 +65,11 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 .portrait-xu { bottom: -9vh; width: 49.5vh; height: 99vh; }
 .portrait-xu, .portrait-jiang { --portrait-flip: -1; }
 .portrait-frame { background-position: center bottom !important; background-size: contain; }
-.portrait-qin { bottom: 14vh; width: 49vh; height: 73.5vh; }
+.portrait-qin { bottom: 8vh; width: 48vh; height: 72vh; }
 .portrait-tang, .portrait-su, .portrait-lin { top: auto; background-position: center bottom !important; background-size: contain !important; }
-.portrait-tang { bottom: -17.5vh; width: 65.7vh; height: 98.5vh; }
-.portrait-lin { bottom: -5vh; width: 55.5vh; height: 84vh; }
-.portrait-su { bottom: -3vh; width: 53.5vh; height: 80vh; }
+.portrait-tang { bottom: -17.5vh; width: 69.3vh; height: 104vh; }
+.portrait-lin { bottom: -5vh; width: 57.5vh; height: 87vh; }
+.portrait-su { bottom: -3vh; width: 51.5vh; height: 77vh; }
 .expression-0 { background-position: 0% center; }
 .expression-1 { background-position: 50% center; }
 .expression-2 { background-position: 100% center; }
@@ -323,13 +323,13 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .speaker-portrait { bottom: -4vh; height: 80vh; opacity: 1; }
   .portrait-jiang { bottom: -2vh; width: 35vh; height: 72vh; }
   .portrait-xu { bottom: -1.7dvh; width: 39dvh; height: 78dvh; }
-  .portrait-qin { bottom: 12vh; width: 42vh; height: 63vh; }
+  .portrait-qin { bottom: 2vh; width: 42vh; height: 63vh; }
   /* Witnesses reuse Qin Zhao's right-side mobile portrait template. Their
      small bottom offsets express height without changing apparent head size. */
-  .portrait-tang { bottom: -6.9dvh; width: 52.5dvh; height: 78.75dvh; }
-  .portrait-lin { width: 48dvh; height: 72dvh; }
-  .portrait-lin { bottom: -2.9dvh; }
-  .portrait-su { bottom: -4.4dvh; width: 46.7dvh; height: 70dvh; }
+  .portrait-tang { bottom: -6.9dvh; width: 55.3dvh; height: 83dvh; }
+  .portrait-lin { width: 47.3dvh; height: 71dvh; }
+  .portrait-lin { bottom: -3dvh; }
+  .portrait-su { bottom: -4.4dvh; width: 45.3dvh; height: 68dvh; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }
   /* Tang's face sits left of center inside his wider source canvas. As the
