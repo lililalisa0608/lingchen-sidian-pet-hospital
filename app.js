@@ -1531,8 +1531,22 @@ function startSuRealtimePhase() {
 }
 
 function challengeSuRealtimePhase() {
+  if (state.selectedTestimony !== 2) {
+    setStage("scene", backgrounds.waiting);
+    runDialogue([["许知衡（心声）", "先抓住她关于‘动物可能睡着’的说法。"]], () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase));
+    return;
+  }
   if (!state.facts.has("replay-capability-solved")) {
-    renderReplayCapabilityChoices();
+    askEvidence(
+      "哪件证物能够检验‘动物可能睡着’这句话？",
+      "liveReplay",
+      () => {
+        setStage("scene", backgrounds.waiting);
+        runDialogue([["许知衡", "我出示《完整直播录像》。先看哪一段能证明直播确实录到了现场反应。"]], renderReplayCapabilityChoices);
+      },
+      "需要完整直播录像，不能只凭现场记录判断。",
+      () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase),
+    );
     return;
   }
   if (state.selectedTestimony !== 4) {
