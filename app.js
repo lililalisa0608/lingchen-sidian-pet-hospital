@@ -47,7 +47,9 @@ let backgroundPreloadScheduled = false;
 // so keep the runtime asset path relative to that directory as well. Plain src
 // attributes and Image() calls continue to use document-relative `assets/...` URLs.
 function cssAssetUrl(path) {
-  return path ? `url("../${path}")` : "none";
+  // Asset names are repository-controlled and contain no CSS-special characters.
+  // Omitting quotes also keeps this helper safe inside inline style attributes.
+  return path ? `url(../${path})` : "none";
 }
 
 function preloadBackground(src, priority = "auto") {

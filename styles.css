@@ -61,7 +61,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 /* Speaker portrait and dialogue */
 .character-layer { position: absolute; z-index: 5; inset: 0; pointer-events: none; overflow: hidden; }
 .speaker-portrait { --portrait-flip: 1; position: absolute; bottom: -8vh; height: 96vh; transform: scaleX(var(--portrait-flip)); background-image: var(--portrait-sheet); background-repeat: no-repeat; background-size: 300% 100%; filter: drop-shadow(0 18px 20px rgba(18,31,27,.26)); animation: portraitIn .18s ease-out; }
-.portrait-jiang { bottom: -4vh; width: 47vh; }
+.portrait-jiang { bottom: -4vh; width: 43vh; height: 88vh; }
 .portrait-xu { bottom: -9vh; width: 49.5vh; height: 99vh; }
 .portrait-xu, .portrait-jiang { --portrait-flip: -1; }
 .portrait-frame { background-position: center bottom !important; background-size: contain; }
@@ -321,7 +321,7 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .cover-copy > span { font-size: 14px; }
   .sound-state { left: 26px; }
   .speaker-portrait { bottom: -4vh; height: 80vh; opacity: 1; }
-  .portrait-jiang { bottom: -2vh; width: 39vh; }
+  .portrait-jiang { bottom: -2vh; width: 35vh; height: 72vh; }
   .portrait-xu { bottom: -1.7dvh; width: 39dvh; height: 78dvh; }
   .portrait-qin { bottom: 12vh; width: 42vh; height: 63vh; }
   /* Witnesses reuse Qin Zhao's right-side mobile portrait template. Their
