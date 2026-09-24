@@ -1532,26 +1532,10 @@ function challengeSuRealtimeEvidence() {
     "liveReplay",
     () => {
       setStage("scene", backgrounds.waiting);
-      runDialogue([["许知衡", "我出示《完整直播录像》。先看哪一段能证明直播确实录到了现场反应。"]], renderReplayCapabilityChoices);
+      runDialogue([["许知衡", "直播录像太长。要让你信服，我得先明确指出哪一段能证明现场反应确实被录了下来。"]], renderReplayCapabilityChoices);
     },
     "需要完整直播录像，不能只凭现场记录判断。",
   );
-}
-
-function challengeSuRealtimePhase() {
-  if (!state.facts.has("replay-capability-solved")) {
-    challengeSuRealtimeEvidence();
-    return;
-  }
-  if (state.selectedTestimony !== 3) {
-    setStage("scene", backgrounds.waiting);
-    runDialogue([["许知衡（心声）", "现在需要解释的不是苏青有没有出现在画面里，而是整段画面是否属于当时。"]], () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase));
-    return;
-  }
-  setStage("scene", backgrounds.waiting);
-  runDialogue(data.fakeRealtimeReveal, () => {
-    runDialogue(data.suBackupAdmission, () => renderSuTestimonyIntro("镜头之外", "备用画面遮住了谁的行动", startSuOffCameraPhase));
-  });
 }
 
 function renderReplayCapabilityChoices() {
@@ -1568,7 +1552,7 @@ function renderReplayCapabilityChoices() {
         setStage("scene", backgrounds.waiting);
         runDialogue(data.replayCapabilityReveal, () => {
           state.facts.add("replay-capability-solved");
-          openSuTestimony(data.suTestimonyRealtime, "选择矛盾证言", challengeSuRealtimePhase);
+          renderSuTestimonyIntro("镜头之外", "备用画面遮住了谁的行动", startSuOffCameraPhase);
         });
       },
     },
