@@ -61,15 +61,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(126, 167, 20
 /* Speaker portrait and dialogue */
 .character-layer { position: absolute; z-index: 5; inset: 0; pointer-events: none; overflow: hidden; }
 .speaker-portrait { --portrait-flip: 1; position: absolute; bottom: -8vh; height: 96vh; transform: scaleX(var(--portrait-flip)); background-image: var(--portrait-sheet); background-repeat: no-repeat; background-size: 300% 100%; filter: drop-shadow(0 18px 20px rgba(18,31,27,.26)); animation: portraitIn .18s ease-out; }
-.portrait-jiang { bottom: -4vh; width: 43vh; height: 88vh; }
+.portrait-jiang { bottom: -4vh; width: 44.5vh; height: 91vh; }
 .portrait-xu { bottom: -9vh; width: 49.5vh; height: 99vh; }
 .portrait-xu, .portrait-jiang { --portrait-flip: -1; }
 .portrait-frame { background-position: center bottom !important; background-size: contain; }
-.portrait-qin { bottom: 8vh; width: 48vh; height: 72vh; }
+.portrait-qin { bottom: 8vh; width: 50vh; height: 75vh; }
 .portrait-tang, .portrait-su, .portrait-lin { top: auto; background-position: center bottom !important; background-size: contain !important; }
-.portrait-tang { bottom: -17.5vh; width: 69.3vh; height: 104vh; }
-.portrait-lin { bottom: -5vh; width: 57.5vh; height: 87vh; }
-.portrait-su { bottom: -3vh; width: 51.5vh; height: 77vh; }
+.portrait-tang { bottom: -13vh; width: 68vh; height: 102vh; }
+.portrait-lin { bottom: -5vh; width: 59.5vh; height: 90vh; }
+.portrait-su { bottom: -3vh; width: 56vh; height: 84vh; }
 .expression-0 { background-position: 0% center; }
 .expression-1 { background-position: 50% center; }
 .expression-2 { background-position: 100% center; }
@@ -321,15 +321,15 @@ input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; 
   .cover-copy > span { font-size: 14px; }
   .sound-state { left: 26px; }
   .speaker-portrait { bottom: -4vh; height: 80vh; opacity: 1; }
-  .portrait-jiang { bottom: -2vh; width: 35vh; height: 72vh; }
+  .portrait-jiang { bottom: -2vh; width: 37vh; height: 76vh; }
   .portrait-xu { bottom: -1.7dvh; width: 39dvh; height: 78dvh; }
-  .portrait-qin { bottom: 2vh; width: 42vh; height: 63vh; }
+  .portrait-qin { bottom: 4vh; width: 44vh; height: 66vh; }
   /* Witnesses reuse Qin Zhao's right-side mobile portrait template. Their
      small bottom offsets express height without changing apparent head size. */
-  .portrait-tang { bottom: -6.9dvh; width: 55.3dvh; height: 83dvh; }
-  .portrait-lin { width: 47.3dvh; height: 71dvh; }
+  .portrait-tang { bottom: -8.5dvh; width: 56dvh; height: 84dvh; }
+  .portrait-lin { width: 50dvh; height: 75dvh; }
   .portrait-lin { bottom: -3dvh; }
-  .portrait-su { bottom: -4.4dvh; width: 45.3dvh; height: 68dvh; }
+  .portrait-su { bottom: -4dvh; width: 48dvh; height: 72dvh; }
   .portrait-left { left: -4%; }
   .portrait-right { right: -4%; }
   /* Tang's face sits left of center inside his wider source canvas. As the
