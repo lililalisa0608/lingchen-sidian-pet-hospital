@@ -1519,37 +1519,31 @@ function askAnimalReactionEvidence() {
     "observationReaction",
     () => {
       setStage("scene", backgrounds.waiting);
-      runDialogue(data.animalReactionReveal, startSuRealtimePhase);
+      runDialogue(data.animalReactionReveal, challengeSuRealtimeEvidence);
     },
     "还需要一个不依赖苏青主观注意力的现场反应。",
   );
 }
 
-function startSuRealtimePhase() {
+function challengeSuRealtimeEvidence() {
   state.facts.delete("replay-capability-solved");
-  openSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase);
+  askEvidence(
+    "哪件证物能够检验‘留守动物可能睡着’这句话？",
+    "liveReplay",
+    () => {
+      setStage("scene", backgrounds.waiting);
+      runDialogue([["许知衡", "我出示《完整直播录像》。先看哪一段能证明直播确实录到了现场反应。"]], renderReplayCapabilityChoices);
+    },
+    "需要完整直播录像，不能只凭现场记录判断。",
+  );
 }
 
 function challengeSuRealtimePhase() {
-  if (state.selectedTestimony !== 2) {
-    setStage("scene", backgrounds.waiting);
-    runDialogue([["许知衡（心声）", "先抓住她关于‘动物可能睡着’的说法。"]], () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase));
-    return;
-  }
   if (!state.facts.has("replay-capability-solved")) {
-    askEvidence(
-      "哪件证物能够检验‘动物可能睡着’这句话？",
-      "liveReplay",
-      () => {
-        setStage("scene", backgrounds.waiting);
-        runDialogue([["许知衡", "我出示《完整直播录像》。先看哪一段能证明直播确实录到了现场反应。"]], renderReplayCapabilityChoices);
-      },
-      "需要完整直播录像，不能只凭现场记录判断。",
-      () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase),
-    );
+    challengeSuRealtimeEvidence();
     return;
   }
-  if (state.selectedTestimony !== 4) {
+  if (state.selectedTestimony !== 3) {
     setStage("scene", backgrounds.waiting);
     runDialogue([["许知衡（心声）", "现在需要解释的不是苏青有没有出现在画面里，而是整段画面是否属于当时。"]], () => renderSuTestimony(data.suTestimonyRealtime, "直播是否实时", challengeSuRealtimePhase));
     return;
