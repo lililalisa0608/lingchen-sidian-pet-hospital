@@ -182,7 +182,7 @@ const audio = {
   },
   trackMix: {
     story: 0.64,
-    testimony: 0.38,
+    testimony: 0.2,
   },
   currentTrack: "story",
   bgm: null,
@@ -191,6 +191,9 @@ const audio = {
   getTrackSource(track = this.currentTrack) {
     if (track === "testimony") return this.testimonyTrack;
     return this.tracks.story;
+  },
+  getTrackVolume(track = this.currentTrack) {
+    return Math.min(1, (state.volume / 100) * (this.trackMix[track] || 0.64));
   },
   init() {
     if (!this.bgm) {
@@ -221,34 +224,43 @@ const audio = {
       this.startBgm();
       return;
     }
-    const shouldResume = Boolean(this.bgm && !this.bgm.paused);
+    const outgoing = this.bgm;
+    const outgoingVolume = outgoing?.volume || 0;
+    const shouldResume = Boolean(outgoing && !outgoing.paused);
     if (this.bgmFadeFrame) window.cancelAnimationFrame(this.bgmFadeFrame);
     this.bgmFadeFrame = null;
-    this.bgm?.pause();
     this.currentTrack = track;
     this.bgm = new Audio(this.getTrackSource(track));
     this.bgm.loop = true;
     this.bgm.preload = "auto";
-    this.update();
     if (shouldResume && !state.muted && state.volume > 0) {
-      const targetVolume = this.bgm.volume;
+      const targetVolume = this.getTrackVolume(track);
       const startTime = performance.now();
       this.bgm.volume = 0;
       this.bgm.play().catch(() => {});
       const fade = (time) => {
         const progress = Math.min(1, (time - startTime) / 720);
+        if (outgoing) outgoing.volume = outgoingVolume * (1 - progress);
         this.bgm.volume = targetVolume * progress;
         if (progress < 1) this.bgmFadeFrame = window.requestAnimationFrame(fade);
-        else this.bgmFadeFrame = null;
+        else {
+          outgoing?.pause();
+          if (outgoing) outgoing.currentTime = 0;
+          this.bgm.volume = targetVolume;
+          this.bgmFadeFrame = null;
+        }
       };
       this.bgmFadeFrame = window.requestAnimationFrame(fade);
+    } else {
+      outgoing?.pause();
+      this.update();
     }
   },
   update() {
     if (this.bgmFadeFrame) window.cancelAnimationFrame(this.bgmFadeFrame);
     this.bgmFadeFrame = null;
+    if (this.bgm) this.bgm.volume = state.muted ? 0 : this.getTrackVolume();
     const value = state.muted ? 0 : state.volume / 100;
-    if (this.bgm) this.bgm.volume = Math.min(1, value * (this.trackMix[this.currentTrack] || 0.64));
     this.sfxPools.forEach(({ players }) => {
       players.forEach((player) => {
         player.volume = Math.min(1, value * (player.dataset.mix || 0.8));
@@ -272,16 +284,16 @@ const audio = {
     this.playSfx("phone", 0.9);
   },
   door() {
-    this.playSfx("door", 0.38);
+    this.playSfx("door", 0.18);
   },
   advance() {
     this.playSfx("advance", 0.45);
   },
   cue(type = "soft") {
-    this.playSfx(type === "evidence" ? "evidence" : "investigate", type === "evidence" ? 0.95 : 0.75);
+    this.playSfx(type === "evidence" ? "evidence" : "investigate", type === "evidence" ? 0.5 : 0.4);
   },
   testimonySting() {
-    this.playSfx("testimony", 0.45);
+    this.playSfx("testimony", 0.18);
   },
 };
 
