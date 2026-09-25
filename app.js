@@ -487,6 +487,10 @@ function nextDialogueLine() {
 function isSceneAdvanceTarget(target) {
   if (!(target instanceof Element)) return false;
   if (els.dialogue.classList.contains("hidden")) return false;
+  // Testimony has its own navigation and must not be advanced by clicking the
+  // scene outside the dialogue panel. Otherwise the global scene gesture sees
+  // an empty dialogue queue and hides the active testimony interface.
+  if (els.dialogue.classList.contains("testimony-mode")) return false;
   if (!els.modal.classList.contains("hidden") || !els.modalScrim.classList.contains("hidden")) return false;
   return !target.closest("#dialogue, #hud, #choice-panel, #overlay, #modal, #modal-scrim, button, a, input, select, textarea, [role='button']");
 }
